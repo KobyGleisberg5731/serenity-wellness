@@ -3,12 +3,26 @@ import smtplib
 from contextlib import contextmanager
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from urllib.parse import urlencode
 
 from flask import has_app_context, has_request_context, render_template, request
 
 from .database import get_all_settings
 from .helpers import media_url
 from .themes import resolve_site_theme
+
+
+def _email_button_color(hex_color: str) -> str:
+    """Slightly darken brand primary for reliable button contrast in email clients."""
+    color = (hex_color or "#d4849a").strip().lstrip("#")
+    if len(color) != 6:
+        return "#b86b82"
+    try:
+        r, g, b = int(color[0:2], 16), int(color[2:4], 16), int(color[4:6], 16)
+    except ValueError:
+        return "#b86b82"
+    r, g, b = max(0, int(r * 0.82)), max(0, int(g * 0.82)), max(0, int(b * 0.82))
+    return f"#{r:02x}{g:02x}{b:02x}"
 
 
 @contextmanager
@@ -21,16 +35,45 @@ def _app_context():
         yield
 
 
+def _site_base_url() -> str:
+    settings = get_all_settings()
+    for key in ("site_base_url", "telegram_webhook_base_url"):
+        base = (settings.get(key) or "").strip().rstrip("/")
+        if base:
+            return base
+    if has_request_context():
+        return request.host_url.rstrip("/")
+    return ""
+
+
+def _absolute_url(path: str) -> str:
+    path = (path or "").strip()
+    if path.startswith("http://") or path.startswith("https://"):
+        return path
+    if not path.startswith("/"):
+        path = f"/{path}"
+    base = _site_base_url()
+    return f"{base}{path}" if base else path
+
+
+def _track_url(booking: dict) -> str:
+    params = urlencode({
+        "booking_id": booking["booking_id"],
+        "email": booking["email"],
+    })
+    return _absolute_url(f"/track?{params}")
+
+
+def _admin_booking_url(booking_id: str) -> str:
+    return _absolute_url(f"/admin/bookings/{booking_id}")
+
+
 def _brand_context() -> dict:
     settings = get_all_settings()
     theme = resolve_site_theme(settings)
     logo = settings.get("logo_path", "")
     logo_path = media_url(logo) if logo else ""
-    base = _site_base_url()
-    if logo_path and not logo_path.startswith("http"):
-        logo_url = f"{base}{logo_path}" if base else ""
-    else:
-        logo_url = logo_path
+    logo_url = _absolute_url(logo_path) if logo_path else ""
     return {
         "business_name": settings.get("business_name", "Serenity Wellness"),
         "footer_tagline": settings.get("footer_tagline", ""),
@@ -42,23 +85,10 @@ def _brand_context() -> dict:
         "font_heading": theme["font_heading"],
         "font_body": theme["font_body"],
         "logo_url": logo_url,
+        "button_bg": _email_button_color(theme["primary"]),
+        "button_text": "#ffffff",
+        "button_outline_bg": theme["secondary"],
     }
-
-
-def _site_base_url() -> str:
-    settings = get_all_settings()
-    base = (settings.get("site_base_url") or "").strip().rstrip("/")
-    if base:
-        return base
-    if has_request_context():
-        return request.host_url.rstrip("/")
-    return ""
-
-
-def _track_url(booking: dict) -> str:
-    base = _site_base_url()
-    path = f"/track?booking_id={booking['booking_id']}&email={booking['email']}"
-    return f"{base}{path}" if base else path
 
 
 def send_email(to_email: str, subject: str, html_body: str, text_body: str = "") -> tuple[bool, str]:
@@ -171,9 +201,7 @@ def send_admin_customer_message(booking: dict, message_body: str, customer_name:
     admin_email = settings.get("admin_notification_email", "").strip()
     if not admin_email:
         return
-    base = _site_base_url()
-    admin_path = f"/admin/bookings/{booking['booking_id']}"
-    admin_url = f"{base}{admin_path}" if base else admin_path
+    admin_url = _admin_booking_url(booking["booking_id"])
     ctx = {
         **_brand_context(),
         "booking": booking,
@@ -194,9 +222,7 @@ def send_admin_payment_submitted(booking: dict, method_name: str = "", note: str
     admin_email = settings.get("admin_notification_email", "").strip()
     if not admin_email:
         return
-    base = _site_base_url()
-    admin_path = f"/admin/bookings/{booking['booking_id']}"
-    admin_url = f"{base}{admin_path}" if base else admin_path
+    admin_url = _admin_booking_url(booking["booking_id"])
     ctx = {
         **_brand_context(),
         "booking": booking,
@@ -236,9 +262,7 @@ def send_payment_confirmed_admin(booking: dict, amount: float, method_name: str 
     admin_email = settings.get("admin_notification_email", "").strip()
     if not admin_email:
         return
-    base = _site_base_url()
-    admin_path = f"/admin/bookings/{booking['booking_id']}"
-    admin_url = f"{base}{admin_path}" if base else admin_path
+    admin_url = _admin_booking_url(booking["booking_id"])
     with _app_context():
         ctx = {
             **_brand_context(),
@@ -290,8 +314,7 @@ def send_crypto_payment_created_admin(booking: dict, payment: dict):
     admin_email = settings.get("admin_notification_email", "").strip()
     if not admin_email:
         return
-    base = _site_base_url()
-    admin_url = f"{base}/admin/bookings/{booking['booking_id']}" if base else f"/admin/bookings/{booking['booking_id']}"
+    admin_url = _admin_booking_url(booking["booking_id"])
     with _app_context():
         ctx = {**_crypto_payment_context(booking, payment), "admin_url": admin_url}
         html = render_template("email/admin_crypto_payment_created.html", **ctx)
@@ -324,8 +347,7 @@ def send_crypto_payment_processing_admin(booking: dict, payment: dict, status: s
     admin_email = settings.get("admin_notification_email", "").strip()
     if not admin_email:
         return
-    base = _site_base_url()
-    admin_url = f"{base}/admin/bookings/{booking['booking_id']}" if base else f"/admin/bookings/{booking['booking_id']}"
+    admin_url = _admin_booking_url(booking["booking_id"])
     with _app_context():
         ctx = {
             **_crypto_payment_context(booking, payment),
@@ -347,8 +369,7 @@ def send_payment_approved_admin(booking: dict, amount: float, method_name: str =
     admin_email = settings.get("admin_notification_email", "").strip()
     if not admin_email:
         return
-    base = _site_base_url()
-    admin_url = f"{base}/admin/bookings/{booking['booking_id']}" if base else f"/admin/bookings/{booking['booking_id']}"
+    admin_url = _admin_booking_url(booking["booking_id"])
     with _app_context():
         ctx = {
             **_brand_context(),
@@ -369,9 +390,8 @@ def send_payment_approved_admin(booking: dict, amount: float, method_name: str =
 def _attachment_url(path: str) -> str:
     if not path:
         return ""
-    base = _site_base_url()
-    rel = f"/data/{path}" if not path.startswith("/") else path
-    return f"{base}{rel}" if base else rel
+    rel = path if path.startswith("/") else f"/data/{path.lstrip('/')}"
+    return _absolute_url(rel)
 
 
 def send_payment_pending_customer(booking: dict, amount: float, method_name: str = ""):
@@ -398,8 +418,7 @@ def send_admin_payment_proof(booking: dict, submission_id: int, method_name: str
     admin_email = settings.get("admin_notification_email", "").strip()
     if not admin_email:
         return
-    base = _site_base_url()
-    admin_url = f"{base}/admin/bookings/{booking['booking_id']}" if base else f"/admin/bookings/{booking['booking_id']}"
+    admin_url = _admin_booking_url(booking["booking_id"])
     proof_url = _attachment_url(proof_path)
     with _app_context():
         ctx = {
@@ -514,8 +533,7 @@ def send_payment_expired_admin(booking: dict, payment: dict):
     admin_email = settings.get("admin_notification_email", "").strip()
     if not admin_email:
         return
-    base = _site_base_url()
-    admin_url = f"{base}/admin/bookings/{booking['booking_id']}" if base else f"/admin/bookings/{booking['booking_id']}"
+    admin_url = _admin_booking_url(booking["booking_id"])
     with _app_context():
         ctx = {**_crypto_payment_context(booking, payment), "admin_url": admin_url}
         html = render_template("email/admin_payment_expired.html", **ctx)

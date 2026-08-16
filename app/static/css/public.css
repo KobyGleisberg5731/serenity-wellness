@@ -502,12 +502,53 @@ select.themed-select {
 input[type="date"].themed-input-date,
 input[type="time"].themed-input-time,
 input[type="date"],
-input[type="time"] {
+input[type="time"],
+.booking-form input[type="date"],
+.booking-form input[type="time"] {
   accent-color: var(--primary);
   color-scheme: light;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 48px;
+  font-size: 1rem;
+  line-height: 1.4;
+  color: var(--text);
+  opacity: 1;
 }
-.datetime-grid .form-group input { min-height: 48px; }
+input[type="date"]::-webkit-date-and-time-value,
+input[type="time"]::-webkit-date-and-time-value {
+  text-align: left;
+  color: var(--text);
+  opacity: 1;
+}
+input[type="date"]::-webkit-datetime-edit,
+input[type="time"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="time"]::-webkit-datetime-edit-text {
+  color: var(--text);
+  opacity: 1;
+  padding: 0;
+}
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.7;
+  margin-left: 0.35rem;
+}
+input[type="date"]:focus::-webkit-calendar-picker-indicator,
+input[type="time"]:focus::-webkit-calendar-picker-indicator {
+  opacity: 1;
+}
+.datetime-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.datetime-grid .form-group { margin-bottom: 0; }
+.datetime-grid .form-group input { min-height: 48px; width: 100%; }
 .form-group input::placeholder, .form-group textarea::placeholder {
   color: color-mix(in srgb, var(--muted) 65%, transparent);
 }
@@ -879,6 +920,69 @@ body.menu-open { overflow: hidden; touch-action: none; }
   font-family: var(--font-body);
 }
 .booking-close-btn { margin-top: 0.75rem; }
+.booking-id-label {
+  margin: 1rem 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.booking-success-summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem 1rem;
+  margin: 1.15rem 0 0;
+  padding: 1rem 1.1rem;
+  text-align: left;
+  background: color-mix(in srgb, var(--secondary) 55%, white);
+  border: 1px solid color-mix(in srgb, var(--primary) 10%, var(--border));
+  border-radius: 14px;
+}
+.booking-success-summary .track-detail-item strong {
+  font-size: 0.92rem;
+  word-break: break-word;
+}
+.booking-spam-hint,
+.contact-spam-hint {
+  margin: 0.85rem 0 0;
+  font-size: 0.82rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.booking-spam-hint strong,
+.contact-spam-hint strong { color: var(--text); font-weight: 600; }
+.contact-booking-card { position: relative; overflow: hidden; }
+
+.booking-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.94);
+  border-radius: inherit;
+  backdrop-filter: blur(6px);
+}
+.booking-loading[hidden] { display: none !important; }
+.booking-loading-inner { text-align: center; padding: 1.5rem; }
+.booking-loading-spinner {
+  width: 42px;
+  height: 42px;
+  margin: 0 auto 1rem;
+  border: 3px solid color-mix(in srgb, var(--primary) 18%, transparent);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: bookingSpin 0.75s linear infinite;
+}
+@keyframes bookingSpin { to { transform: rotate(360deg); } }
+.booking-loading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
 
 /* Multi-step wizard */
 .booking-progress { margin-bottom: 1.5rem; }
@@ -2481,6 +2585,16 @@ body.menu-open { overflow: hidden; touch-action: none; }
   .booking-modal.open .booking-card { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
   .booking-actions { flex-direction: column-reverse; }
   .booking-actions .btn { width: 100%; }
+  .booking-form .form-group input,
+  .booking-form .form-group textarea,
+  .booking-form .form-group select,
+  .booking-form input[type="date"],
+  .booking-form input[type="time"] {
+    font-size: 1rem;
+    padding: 0.85rem 1rem;
+  }
+  .datetime-grid { gap: 0.85rem; }
+  .booking-success-summary { grid-template-columns: 1fr; }
   /* Utility bar — marquee on mobile */
   .utility-bar { padding: 0.45rem 0; }
   .utility-bar-marquee {

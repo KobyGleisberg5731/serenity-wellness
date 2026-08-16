@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/public.css') }}?v=20250816v">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/public.css') }}?v=20250817a">
   <style>
     :root {
       --primary: {{ site.theme.primary }};
@@ -133,7 +133,7 @@
           </div>
         </div>
 
-        <form id="bookingForm" class="booking-form">
+        <form id="bookingForm" class="booking-form" novalidate>
           <input type="hidden" name="masseuse_id" id="bookMasseuseId" value="">
 
           <div class="booking-step-panel active" data-step="1">
@@ -193,12 +193,12 @@
             </div>
             <div class="form-grid-2 datetime-grid">
               <div class="form-group">
-                <label>Preferred date</label>
-                <input type="date" name="preferred_date" id="bookDate" class="themed-input-date" required>
+                <label for="bookDate">Preferred date</label>
+                <input type="date" name="preferred_date" id="bookDate" class="themed-input-date" required autocomplete="off">
               </div>
               <div class="form-group">
-                <label>Preferred time</label>
-                <input type="time" name="preferred_time" id="bookTime" class="themed-input-time" required>
+                <label for="bookTime">Preferred time</label>
+                <input type="time" name="preferred_time" id="bookTime" class="themed-input-time" required autocomplete="off">
               </div>
             </div>
             <input type="hidden" name="preferred_datetime" id="bookPreferredDatetime">
@@ -216,13 +216,22 @@
             <button type="submit" class="btn btn-block booking-submit" id="bookingSubmitBtn" style="display:none">Request appointment</button>
           </div>
         </form>
+        <div id="bookingLoading" class="booking-loading" hidden aria-live="polite" aria-busy="true">
+          <div class="booking-loading-inner">
+            <div class="booking-loading-spinner" aria-hidden="true"></div>
+            <p>Submitting your request…</p>
+          </div>
+        </div>
       </div>
 
       <div id="bookingSuccessStep" class="booking-success" style="display:none">
         <div class="booking-success-icon">✓</div>
         <div class="eyebrow">Confirmed</div>
         <h2>You're all set</h2>
-        <p class="booking-lead">A confirmation email is on its way. Save your booking ID to track progress and chat with us anytime.</p>
+        <p class="booking-lead">A confirmation email was sent to <strong id="successBookingEmail"></strong>. Save your booking ID below to track progress and chat with us anytime.</p>
+        <div class="booking-success-summary" id="successBookingSummary" aria-label="Booking details"></div>
+        <p class="booking-spam-hint">Can't find the email in your inbox? Please check your <strong>spam</strong>, <strong>junk</strong>, or <strong>trash</strong> folder.</p>
+        <p class="booking-id-label">Your booking ID</p>
         <p class="booking-id" id="successBookingId"></p>
         <a href="#" class="btn btn-block" id="successTrackLink">Track session & chat</a>
         <button type="button" class="btn btn-outline btn-block booking-close-btn" onclick="closeBookingModal()">Close</button>
@@ -302,6 +311,6 @@
   </footer>
 
   {% block scripts %}{% endblock %}
-  <script src="{{ url_for('static', filename='js/public.js') }}?v=20250816s"></script>
+  <script src="{{ url_for('static', filename='js/public.js') }}?v=20250817b"></script>
 </body>
 </html>

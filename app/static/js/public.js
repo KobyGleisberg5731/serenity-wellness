@@ -279,6 +279,8 @@ const bookingBackBtn = document.getElementById('bookingBackBtn');
 
 const bookingSubmitBtn = document.getElementById('bookingSubmitBtn');
 
+const bookingLoading = document.getElementById('bookingLoading');
+
 const masseuseStep = document.getElementById('masseuseStep');
 
 const progressMasseuse = document.getElementById('progressMasseuse');
@@ -387,6 +389,36 @@ function todayIsoDate() {
   return local.toISOString().split('T')[0];
 }
 
+function setBookingLoading(on) {
+  if (bookingLoading) bookingLoading.hidden = !on;
+  [bookingNextBtn, bookingBackBtn, bookingSubmitBtn].forEach(btn => {
+    if (btn) btn.disabled = on;
+  });
+}
+
+function populateBookingSuccess(booking) {
+  const emailEl = document.getElementById('successBookingEmail');
+  const summaryEl = document.getElementById('successBookingSummary');
+  const idEl = document.getElementById('successBookingId');
+  if (emailEl) emailEl.textContent = booking.email || '';
+  if (idEl) idEl.textContent = booking.booking_id || '';
+  if (!summaryEl) return;
+
+  const rows = [
+    ['Treatment', booking.service_name],
+    ['Session', booking.pricing_label],
+    ['Preferred time', booking.preferred_datetime],
+    ['Status', 'Pending confirmation'],
+  ].filter(([, value]) => value);
+
+  summaryEl.innerHTML = rows.map(([label, value]) => `
+    <div class="track-detail-item">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </div>
+  `).join('');
+}
+
 function initBookingDateTimeFields() {
   const bookDate = document.getElementById('bookDate');
   const bookTime = document.getElementById('bookTime');
@@ -423,6 +455,18 @@ function buildBookingPayload() {
 function resetBookingWizard() {
 
   bookingCurrentStep = 1;
+
+  setBookingLoading(false);
+
+  if (bookingSuccessStep) {
+    bookingSuccessStep.style.display = 'none';
+    bookingSuccessStep.classList.remove('success-in');
+  }
+
+  const summaryEl = document.getElementById('successBookingSummary');
+  if (summaryEl) summaryEl.innerHTML = '';
+  const emailEl = document.getElementById('successBookingEmail');
+  if (emailEl) emailEl.textContent = '';
 
   if (bookingForm) bookingForm.reset();
 
@@ -513,6 +557,8 @@ function openBookingModal(opts = {}) {
 function closeBookingModal() {
 
   if (!bookingModal) return;
+
+  setBookingLoading(false);
 
   bookingModal.classList.remove('open');
 
@@ -624,11 +670,7 @@ if (bookingForm) {
 
 
 
-    const btn = bookingSubmitBtn;
-
-    btn.disabled = true;
-
-    btn.textContent = 'Sending request...';
+    setBookingLoading(true);
 
     bookingError.style.display = 'none';
 
@@ -644,9 +686,7 @@ if (bookingForm) {
 
       bookingError.style.display = 'block';
 
-      btn.disabled = false;
-
-      btn.textContent = 'Request appointment';
+      setBookingLoading(false);
 
       return;
 
@@ -682,7 +722,7 @@ if (bookingForm) {
 
 
 
-      document.getElementById('successBookingId').textContent = json.booking.booking_id;
+      populateBookingSuccess(json.booking);
 
       document.getElementById('successTrackLink').href = json.track_url;
 
@@ -700,9 +740,7 @@ if (bookingForm) {
 
     } finally {
 
-      btn.disabled = false;
-
-      btn.textContent = 'Request appointment';
+      setBookingLoading(false);
 
     }
 

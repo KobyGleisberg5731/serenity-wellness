@@ -5,10 +5,12 @@ from werkzeug.security import generate_password_hash
 
 from .database import get_all_settings, get_db, init_db, now_iso, seed_settings_defaults, set_settings
 from .stock_images import STOCK_ABOUT, STOCK_GALLERY, STOCK_HERO, STOCK_MASSEUSES
+from .stock_image_factory import ensure_stock_images
 
 
 def seed_database(admin_email: str = "admin@serenity.local", admin_password: str = "admin123"):
     init_db()
+    ensure_stock_images()
 
     defaults = {
         "business_name": "MassageSanctuary",

@@ -105,13 +105,22 @@ def build_contact_link(channel: dict) -> str:
 def media_url(path: str) -> str:
     if not path:
         return ""
+    path = str(path).strip()
     if path.startswith("http://") or path.startswith("https://"):
+        return path
+    if path.startswith("/data/"):
         return path
     if path.startswith("/static/"):
         return path
+    if path.startswith("/uploads/"):
+        return f"/data{path}"
+    if path.startswith("uploads/"):
+        return f"/data/{path}"
     if path.startswith("img/"):
         return f"/static/{path}"
-    return f"/data/{path}"
+    if path.startswith("/img/"):
+        return f"/static{path}"
+    return f"/data/{path.lstrip('/')}"
 
 
 def stars_html(rating: int) -> str:

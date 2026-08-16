@@ -63,7 +63,11 @@ def contact():
         if error:
             flash(error, "error")
             return redirect(url_for("public.contact"))
-        flash(f"Booking confirmed! Your ID is {booking['booking_id']}. Check your email.", "success")
+        flash(
+            f"Booking confirmed! Your ID is {booking['booking_id']}. "
+            "Check your inbox for confirmation — if you don't see it, check spam, junk, or trash.",
+            "success",
+        )
         return redirect(url_for("public.track", booking_id=booking["booking_id"], email=booking["email"]))
     return render_template("public/contact.html", page="contact")
 

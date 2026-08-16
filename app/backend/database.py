@@ -17,6 +17,8 @@ def ensure_dirs():
     (UPLOAD_DIR / "gallery").mkdir(exist_ok=True)
     (UPLOAD_DIR / "masseuses").mkdir(exist_ok=True)
     (UPLOAD_DIR / "branding").mkdir(exist_ok=True)
+    (UPLOAD_DIR / "hero").mkdir(exist_ok=True)
+    (UPLOAD_DIR / "about").mkdir(exist_ok=True)
     (UPLOAD_DIR / "payment_proofs").mkdir(exist_ok=True)
 
 

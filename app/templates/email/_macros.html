@@ -1,13 +1,18 @@
 {# Email-safe fonts — web fonts are stripped by most clients #}
 {% set _font_heading = "Georgia, 'Times New Roman', serif" %}
 {% set _font_body = "Arial, Helvetica, sans-serif" %}
-{% set _btn_color = primary_color|default(primary, true) %}
+{% set _btn_bg = button_bg|default(primary, true) %}
+{% set _btn_text = button_text|default('#ffffff', true) %}
+{% set _btn_outline_bg = button_outline_bg|default(secondary, true) %}
 
 {% macro email_button(href, label, is_primary=true) %}
-<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:6px 4px;">
+{% set bg = _btn_bg if is_primary else _btn_outline_bg %}
+{% set fg = _btn_text if is_primary else _btn_bg %}
+{% set border = _btn_bg %}
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:8px auto;">
   <tr>
-    <td align="center" bgcolor="{% if is_primary %}{{ _btn_color }}{% else %}#ffffff{% endif %}" style="border-radius:999px;{% if is_primary %}background:{{ _btn_color }};{% else %}background:#ffffff;border:2px solid {{ _btn_color }};{% endif %}">
-      <a href="{{ href }}" target="_blank" style="display:inline-block;padding:14px 32px;font-family:{{ _font_body }};font-size:15px;font-weight:700;line-height:1.2;color:{% if is_primary %}#ffffff{% else %}{{ _btn_color }}{% endif %};text-decoration:none;border-radius:999px;mso-padding-alt:0;">
+    <td align="center" bgcolor="{{ bg }}" style="background-color:{{ bg }};border-radius:999px;mso-padding-alt:0;">
+      <a href="{{ href }}" target="_blank" rel="noopener noreferrer" style="display:inline-block;min-width:200px;padding:14px 32px;font-family:{{ _font_body }};font-size:15px;font-weight:700;line-height:1.2;text-align:center;color:{{ fg }};text-decoration:none;border-radius:999px;background-color:{{ bg }};border:2px solid {{ border }};mso-line-height-rule:exactly;-webkit-text-size-adjust:none;">
         {{ label }}
       </a>
     </td>
@@ -47,8 +52,10 @@
     <p style="margin:0 0 16px;font-size:16px;line-height:1.5;">{{ message }}</p>
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
       <tr>
-        <td align="center" bgcolor="#ffffff" style="border-radius:999px;background:#ffffff;">
-          <a href="{{ pay_url }}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:{{ _font_body }};font-size:15px;font-weight:700;color:{{ primary }};text-decoration:none;border-radius:999px;">Pay now</a>
+        <td align="center" bgcolor="#ffffff" style="background-color:#ffffff;border-radius:999px;mso-padding-alt:0;">
+          <a href="{{ pay_url }}" target="_blank" rel="noopener noreferrer" style="display:inline-block;min-width:180px;padding:14px 30px;font-family:{{ _font_body }};font-size:15px;font-weight:700;line-height:1.2;text-align:center;color:{{ _btn_bg }};text-decoration:none;border-radius:999px;background-color:#ffffff;border:2px solid #ffffff;mso-line-height-rule:exactly;-webkit-text-size-adjust:none;">
+            Pay now
+          </a>
         </td>
       </tr>
     </table>

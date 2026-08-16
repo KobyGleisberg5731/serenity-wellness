@@ -12,6 +12,8 @@
   ('Theme', current_theme|replace('_',' ')|title, settings.get('site_theme')),
   ('Site URL', settings.get('site_base_url') or '—', settings.get('site_base_url')),
   ('Logo', 'Uploaded' if settings.get('logo_path') else 'Default text logo', settings.get('logo_path')),
+  ('Hero image', 'Uploaded' if settings.get('hero_image','').startswith('uploads/') else 'Stock/default', settings.get('hero_image')),
+  ('About image', 'Uploaded' if settings.get('about_image','').startswith('uploads/') else 'Stock/default', settings.get('about_image')),
   ('Hero headline', (settings.get('hero_headline') or '—')[:50], settings.get('hero_headline')),
 ]) }}
 
@@ -117,7 +119,11 @@
 
       <div class="form-group"><label>Tagline</label><input name="tagline" value="{{ settings.get('tagline','') }}"></div>
 
-      <div class="form-group"><label>Logo</label><input name="logo" type="file" accept="image/*"></div>
+      <div class="form-group"><label>Logo</label><input name="logo" type="file" accept="image/*">
+        {% if settings.get('logo_path') %}
+        <div class="image-preview"><img src="{{ settings.get('logo_path')|media_url }}" alt="Current logo"></div>
+        {% endif %}
+      </div>
 
       <div class="form-group"><label>Footer Tagline</label><input name="footer_tagline" value="{{ settings.get('footer_tagline','') }}"></div>
 
@@ -137,9 +143,30 @@
 
     <div class="form-group"><label>Footer About</label><textarea name="footer_about" rows="2">{{ settings.get('footer_about','') }}</textarea></div>
 
-    <div class="form-group"><label>Hero Image URL</label><input name="hero_image" value="{{ settings.get('hero_image','') }}" placeholder="https://... or /static/img/stock/hero.jpg"></div>
+    <h2 style="margin-top:2rem">Site Images</h2>
+    <p class="section-hint">Upload images here — they are stored on your server and work after VPS deploy (enable <strong>Sync local database</strong> when deploying). You can also paste an external URL instead.</p>
 
-    <div class="form-group"><label>About Image URL</label><input name="about_image" value="{{ settings.get('about_image','') }}"></div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Hero image</label>
+        <input name="hero_image_file" type="file" accept="image/*">
+        {% if settings.get('hero_image') %}
+        <div class="image-preview"><img src="{{ settings.get('hero_image')|media_url }}" alt="Current hero image"></div>
+        {% endif %}
+        <label class="field-sub">Or image URL</label>
+        <input name="hero_image" value="{{ settings.get('hero_image','') }}" placeholder="https://... or leave blank to keep current">
+      </div>
+      <div class="form-group">
+        <label>About image</label>
+        <input name="about_image_file" type="file" accept="image/*">
+        {% if settings.get('about_image') %}
+        <div class="image-preview"><img src="{{ settings.get('about_image')|media_url }}" alt="Current about image"></div>
+        {% endif %}
+        <label class="field-sub">Or image URL</label>
+        <input name="about_image" value="{{ settings.get('about_image','') }}" placeholder="https://... or leave blank to keep current">
+      </div>
+    </div>
+
     <div class="form-group"><label>Public Site URL</label><input name="site_base_url" value="{{ settings.get('site_base_url','') }}" placeholder="https://yourdomain.com — used in emails &amp; track links"></div>
     <button type="submit" class="btn">Save Branding</button>
 

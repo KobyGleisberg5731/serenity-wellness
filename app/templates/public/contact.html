@@ -8,7 +8,7 @@
   </div>
 </section>
 <section class="section section-alt section-compact">
-  <div class="container grid-2">
+  <div class="container grid-2 contact-page-grid">
     <div>
       <div style="margin-top:0">
         {% for ch in site.contacts %}
@@ -19,19 +19,80 @@
         {% endfor %}
       </div>
     </div>
-    <div class="card">
+    <div class="card contact-booking-card">
       <h2>Request an appointment</h2>
-      <form method="POST">
-        <div class="form-group"><input name="name" placeholder="Full Name" required></div>
-        <div class="form-group"><input name="email" type="email" placeholder="Email Address" required></div>
-        <div class="form-group"><input name="phone" placeholder="Phone Number"></div>
-        <div class="form-group"><input name="zip_code" placeholder="Zip Code" required></div>
-        <div class="form-group"><textarea name="preferred_datetime" placeholder="Preferred date, time, and treatment" rows="3" required></textarea></div>
-        <div class="form-group"><textarea name="message" placeholder="Any questions?" rows="2"></textarea></div>
-        <button type="submit" class="btn btn-block">Request Appointment</button>
+      <form method="POST" id="contactBookingForm" class="booking-form contact-booking-form" novalidate>
+        <div class="form-group"><label for="contactName">Full name</label><input id="contactName" name="name" placeholder="Jane Doe" required autocomplete="name"></div>
+        <div class="form-group"><label for="contactEmail">Email</label><input id="contactEmail" name="email" type="email" placeholder="you@email.com" required autocomplete="email"></div>
+        <div class="form-group"><label for="contactPhone">Phone</label><input id="contactPhone" name="phone" type="tel" placeholder="Optional" autocomplete="tel"></div>
+        <div class="form-group"><label for="contactZip">Zip code</label><input id="contactZip" name="zip_code" placeholder="12345" required autocomplete="postal-code"></div>
+        <div class="form-grid-2 datetime-grid">
+          <div class="form-group">
+            <label for="contactDate">Preferred date</label>
+            <input type="date" id="contactDate" name="preferred_date" class="themed-input-date" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="contactTime">Preferred time</label>
+            <input type="time" id="contactTime" name="preferred_time" class="themed-input-time" value="14:00" required autocomplete="off">
+          </div>
+        </div>
+        <input type="hidden" name="preferred_datetime" id="contactPreferredDatetime">
+        <div class="form-group"><label for="contactMessage">Notes</label><textarea id="contactMessage" name="message" placeholder="Preferences, focus areas, or questions" rows="3"></textarea></div>
+        <button type="submit" class="btn btn-block" id="contactSubmitBtn">Request appointment</button>
       </form>
+      <p class="form-footer contact-spam-hint">After booking, check your inbox for confirmation. If you don't see it, look in your <strong>spam</strong>, <strong>junk</strong>, or <strong>trash</strong> folder.</p>
       <p class="form-footer"><a href="{{ url_for('public.track') }}">Track an existing booking →</a></p>
+      <div id="contactLoading" class="booking-loading contact-loading" hidden aria-live="polite">
+        <div class="booking-loading-inner">
+          <div class="booking-loading-spinner" aria-hidden="true"></div>
+          <p>Submitting your request…</p>
+        </div>
+      </div>
     </div>
   </div>
 </section>
+{% endblock %}
+{% block scripts %}
+{{ super() }}
+<script>
+(function () {
+  function todayIsoDate() {
+    const d = new Date();
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    return local.toISOString().split('T')[0];
+  }
+  const dateEl = document.getElementById('contactDate');
+  const timeEl = document.getElementById('contactTime');
+  const form = document.getElementById('contactBookingForm');
+  const loading = document.getElementById('contactLoading');
+  const submitBtn = document.getElementById('contactSubmitBtn');
+  const hiddenDt = document.getElementById('contactPreferredDatetime');
+  if (dateEl) {
+    dateEl.min = todayIsoDate();
+    if (!dateEl.value) dateEl.value = dateEl.min;
+  }
+  if (!form) return;
+  form.addEventListener('submit', function (e) {
+    const date = (dateEl?.value || '').trim();
+    const time = (timeEl?.value || '').trim();
+    if (!date || !time) {
+      e.preventDefault();
+      alert('Please select a preferred date and time.');
+      return;
+    }
+    const dt = new Date(date + 'T' + time);
+    hiddenDt.value = Number.isNaN(dt.getTime())
+      ? (date + ' at ' + time)
+      : dt.toLocaleString('en-US', {
+          weekday: 'long', month: 'long', day: 'numeric', year: 'numeric',
+          hour: 'numeric', minute: '2-digit', hour12: true,
+        });
+    if (loading) loading.hidden = false;
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending…';
+    }
+  });
+})();
+</script>
 {% endblock %}

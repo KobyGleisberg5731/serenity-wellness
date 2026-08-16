@@ -88,7 +88,7 @@ def branding():
             "hero_subtext", "about_title", "about_text", "about_text_2", "footer_about",
             "footer_motto", "utility_bar_left", "utility_bar_right",
             "color_primary", "color_secondary", "color_accent", "color_text", "color_muted",
-            "font_heading", "font_body", "hero_image", "about_image", "site_theme", "site_base_url",
+            "font_heading", "font_body", "site_theme", "site_base_url",
         ]
         data = {f: request.form.get(f, "") for f in fields}
         theme_id = data.get("site_theme") or DEFAULT_THEME_ID
@@ -101,6 +101,20 @@ def branding():
             path = save_upload(request.files["logo"], "branding")
             if path:
                 data["logo_path"] = path
+        hero_upload = save_upload(request.files.get("hero_image_file"), "hero")
+        if hero_upload:
+            data["hero_image"] = hero_upload
+        else:
+            hero_url = request.form.get("hero_image", "").strip()
+            if hero_url:
+                data["hero_image"] = hero_url
+        about_upload = save_upload(request.files.get("about_image_file"), "about")
+        if about_upload:
+            data["about_image"] = about_upload
+        else:
+            about_url = request.form.get("about_image", "").strip()
+            if about_url:
+                data["about_image"] = about_url
         set_settings(data)
         flash("Branding updated.", "success")
         return redirect(url_for("admin.branding"))

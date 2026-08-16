@@ -339,6 +339,30 @@ input[type="date"], input[type="time"] { accent-color: var(--admin-accent); }
 }
 .card-inner h3 { margin: 0 0 1rem; font-size: 0.95rem; font-weight: 600; }
 
+.image-preview {
+  margin-top: 0.65rem;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: #fff;
+  max-width: 280px;
+}
+.image-preview img {
+  display: block;
+  width: 100%;
+  max-height: 160px;
+  object-fit: cover;
+}
+.field-sub {
+  display: block;
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--admin-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
 @media (max-width: 1024px) {
   .admin-layout { flex-direction: column; }
   .admin-sidebar { width: 100%; }
