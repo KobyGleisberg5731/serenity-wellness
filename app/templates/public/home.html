@@ -1,15 +1,34 @@
 {% extends "public/base.html" %}
 {% block content %}
+{% set mobile_hero_labels = ['Breathe', 'Restore', 'Unwind', 'Renew', 'Glow', 'Calm', 'Bliss'] %}
+{% set mobile_hero_captions = [
+  (site.settings.get('hero_headline', 'A softer space to relax.')|truncate(52, True, '')),
+  'Soft luxury care awaits.',
+  'Private calm, just for you.',
+  'Exhale. Reset. Glow.',
+  'Your serene ritual.',
+  'Stillness starts here.',
+  'Gentle touch, deep rest.'
+] %}
 <section class="hero hero--image hero--split" style="--hero-image: url('{{ site.hero_image }}');">
   <div class="hero-bg" aria-hidden="true"></div>
   <div class="hero-overlay" aria-hidden="true"></div>
   <div class="hero-copy-blur" aria-hidden="true"></div>
   <div class="hero-showcase" data-hero-carousel>
     <div class="hero-showcase-frame">
-      <img class="hero-showcase-slide active" src="{{ site.hero_image }}" alt="">
+      <img class="hero-showcase-slide active" src="{{ site.hero_image }}" alt=""
+        data-label="{{ mobile_hero_labels[0] }}"
+        data-caption="{{ mobile_hero_captions[0] }}">
       {% for g in site.gallery[:6] %}
-      <img class="hero-showcase-slide" src="{{ g.filename|media_url }}" alt="{{ g.alt_text or '' }}">
+      <img class="hero-showcase-slide" src="{{ g.filename|media_url }}" alt="{{ g.alt_text or '' }}"
+        data-label="{{ mobile_hero_labels[(loop.index) % mobile_hero_labels|length] }}"
+        data-caption="{{ mobile_hero_captions[(loop.index) % mobile_hero_captions|length] }}">
       {% endfor %}
+    </div>
+    <div class="hero-mobile-ui" aria-live="polite">
+      <span class="hero-mobile-label" data-hero-label>{{ mobile_hero_labels[0] }}</span>
+      <p class="hero-mobile-caption" data-hero-caption>{{ mobile_hero_captions[0] }}</p>
+      <a href="#" class="hero-mobile-book" data-book-session>Book now</a>
     </div>
   </div>
   <div class="container hero-content">

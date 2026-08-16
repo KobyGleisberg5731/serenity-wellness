@@ -128,6 +128,24 @@ function scheduleUtilityMarquee() {
 scheduleUtilityMarquee();
 window.addEventListener('resize', scheduleUtilityMarquee);
 
+function updateHeroMobileCopy(slide) {
+  const labelEl = document.querySelector('[data-hero-label]');
+  const captionEl = document.querySelector('[data-hero-caption]');
+  const ui = document.querySelector('.hero-mobile-ui');
+  if (!slide || !labelEl) return;
+
+  const label = slide.dataset.label || 'Unwind';
+  const caption = slide.dataset.caption || '';
+  labelEl.textContent = label;
+  if (captionEl) captionEl.textContent = caption;
+
+  if (ui) {
+    ui.classList.remove('hero-mobile-ui--swap');
+    void ui.offsetWidth;
+    ui.classList.add('hero-mobile-ui--swap');
+  }
+}
+
 function initHeroCarousel() {
   const carousel = document.querySelector('[data-hero-carousel]');
   if (!carousel) return;
@@ -137,15 +155,8 @@ function initHeroCarousel() {
     carousel._heroTimer = null;
   }
 
-  if (window.matchMedia('(max-width: 768px)').matches) {
-    carousel.querySelectorAll('.hero-showcase-slide').forEach((s, i) => {
-      s.classList.toggle('active', i === 0);
-    });
-    return;
-  }
-
   const slides = [...carousel.querySelectorAll('.hero-showcase-slide')];
-  if (slides.length < 2) return;
+  if (!slides.length) return;
 
   let idx = slides.findIndex(s => s.classList.contains('active'));
   if (idx < 0) idx = 0;
@@ -154,7 +165,12 @@ function initHeroCarousel() {
     slides[idx].classList.remove('active');
     idx = ((next % slides.length) + slides.length) % slides.length;
     slides[idx].classList.add('active');
+    updateHeroMobileCopy(slides[idx]);
   };
+
+  updateHeroMobileCopy(slides[idx]);
+
+  if (slides.length < 2) return;
 
   carousel._heroTimer = setInterval(() => show(idx + 1), 4500);
 }
