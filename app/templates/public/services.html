@@ -1,0 +1,34 @@
+{% extends "public/base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="container page-hero-inner">
+    <div class="eyebrow">Our treatments</div>
+    <h1>Curated wellness rituals</h1>
+    <p class="page-lead">Each session is thoughtfully designed to support your comfort, privacy, and overall well-being.</p>
+  </div>
+</section>
+<section class="section section-alt section-compact">
+  <div class="container">
+    {% for svc in site.services %}
+    <div class="card card-hover" style="margin-top:{% if loop.first %}0{% else %}2rem{% endif %};padding:0;overflow:hidden">
+      <div class="service-row">
+        <div class="service-row-media">
+          <img src="{{ site.gallery[loop.index0 % site.gallery|length].filename|media_url if site.gallery else site.hero_image }}" alt="{{ svc.name }}">
+        </div>
+        <div class="service-row-body">
+          <span class="badge">{{ svc.badge }}</span>
+          <h2 style="margin:0.75rem 0">{{ svc.name }}</h2>
+          <p style="color:var(--muted)">{{ svc.description }}</p>
+          <ul style="color:var(--muted);padding-left:1.2rem">{% for b in svc.benefits %}<li>{{ b }}</li>{% endfor %}</ul>
+          <p><strong>Recommended:</strong> {{ svc.duration_min }} – {{ svc.duration_max }} minutes</p>
+          <div class="btn-group">
+            <a href="#" class="btn btn-sm" data-book-session data-service-id="{{ svc.id }}" data-service-name="{{ svc.name }}">Book this session</a>
+            <a href="{{ url_for('public.prices') }}" class="btn btn-outline btn-sm">View pricing</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_heading, info_card, pay_banner %}
+{% set email_subtitle = "Payment expiring soon" %}
+{% block email_body %}
+{{ email_heading("Payment expires in " ~ minutes_left ~ " minutes", "Hi " ~ booking.name ~ ", your crypto payment for " ~ booking.booking_id ~ " is still waiting. Please send it soon before the payment window closes.") }}
+
+{{ info_card([
+  ("Send exactly", pay_amount ~ " " ~ pay_currency),
+  ("Wallet", pay_address),
+]) }}
+
+{{ pay_banner(pay_url, "Time running out", "Complete your crypto payment before the window closes.") }}
+{% endblock %}

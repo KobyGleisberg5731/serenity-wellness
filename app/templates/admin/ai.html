@@ -1,0 +1,26 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+{% block title %}AI Settings{% endblock %}
+{% block content %}
+<div class="admin-header"><h1>AI Settings (OpenRouter)</h1></div>
+
+{{ saved_panel('AI configuration', [
+  ('API key', 'Configured securely' if settings.get('openrouter_api_key') else '—', settings.get('openrouter_api_key')),
+  ('Model', settings.get('openrouter_model') or 'openai/gpt-4o-mini', settings.get('openrouter_model')),
+  ('Tone', (settings.get('openrouter_tone') or '—')[:60], settings.get('openrouter_tone')),
+]) }}
+
+<div class="card">
+  <form method="POST" autocomplete="off">
+    <div class="form-group">
+      <label>OpenRouter API Key</label>
+      <input name="openrouter_api_key" type="password" placeholder="{% if settings.get('openrouter_api_key') %}Leave blank to keep saved key{% else %}sk-or-...{% endif %}" autocomplete="off">
+      {% if settings.get('openrouter_api_key') %}<span class="field-saved-hint">API key saved in database</span>{% endif %}
+    </div>
+    <div class="form-group"><label>Model</label><input name="openrouter_model" value="{{ settings.get('openrouter_model','openai/gpt-4o-mini') }}" autocomplete="off"></div>
+    <div class="form-group"><label>Default Tone</label><textarea name="openrouter_tone" rows="2" autocomplete="off">{{ settings.get('openrouter_tone','warm, professional spa review') }}</textarea></div>
+    <button type="submit" class="btn">Save AI Settings</button>
+  </form>
+  <p style="margin-top:1rem;color:#999;font-size:0.85rem">Get your API key at <a href="https://openrouter.ai" target="_blank">openrouter.ai</a>. Used for AI review generation in the Reviews section.</p>
+</div>
+{% endblock %}

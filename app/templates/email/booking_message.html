@@ -1,0 +1,14 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_button, email_heading, message_card %}
+{% set email_subtitle = "New message on your booking" %}
+{% block email_body %}
+{{ email_heading("You have a new message", business_name ~ " · Booking " ~ booking.booking_id) }}
+{{ message_card(message_body) }}
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:28px;">
+  <tr><td align="center">
+    {{ email_button(track_url, "Reply in session chat", true) }}
+    {% if show_pay_now %}{{ email_button(pay_url, "Pay now", false) }}{% endif %}
+  </td></tr>
+</table>
+<p style="margin:18px 0 0;text-align:center;color:{{ muted }};font-size:12px;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">Tap reply to continue your session chat in one place.</p>
+{% endblock %}

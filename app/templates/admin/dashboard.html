@@ -1,0 +1,46 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="admin-header"><h1>Dashboard</h1></div>
+
+{{ saved_panel('System status', [
+  ('Email', 'Configured' if admin_settings.get('smtp_user') and admin_settings.get('smtp_password') else 'Not set', admin_settings.get('smtp_user') and admin_settings.get('smtp_password')),
+  ('Telegram', 'Enabled' if admin_settings.get('telegram_notifications_enabled','0')=='1' else 'Disabled', admin_settings.get('telegram_notifications_enabled','0')=='1'),
+  ('AI reviews', 'Ready' if admin_settings.get('openrouter_api_key') else 'Not set', admin_settings.get('openrouter_api_key')),
+  ('Site theme', (admin_settings.get('site_theme') or 'default')|replace('_',' ')|title, admin_settings.get('site_theme')),
+]) }}
+
+<div class="stats-grid">
+  <div class="stat-card"><div class="num">{{ stats.bookings_pending }}</div><div class="label">Pending Bookings</div></div>
+  <div class="stat-card"><div class="num">{{ stats.bookings_total }}</div><div class="label">Total Bookings</div></div>
+  <div class="stat-card"><div class="num">{{ stats.reviews_total }}</div><div class="label">Reviews</div></div>
+  <div class="stat-card"><div class="num">{{ stats.services_total }}</div><div class="label">Active Services</div></div>
+</div>
+<div class="card">
+  <h2>Quick Setup</h2>
+  <p class="section-hint">Presets live on dedicated pages — use these shortcuts if you do not see them in the sidebar.</p>
+  <div class="quick-links">
+    <a href="{{ url_for('admin.email_settings') }}" class="btn">Email Presets (Gmail, GMX, Outlook…)</a>
+    <a href="{{ url_for('admin.payments') }}" class="btn btn-outline">Payment Methods</a>
+    <a href="{{ url_for('admin.branding') }}" class="btn btn-outline">Theme Presets</a>
+    <a href="{{ url_for('admin.telegram_settings') }}" class="btn btn-outline">Telegram</a>
+  </div>
+</div>
+<div class="card">
+  <h2>Recent Bookings</h2>
+  <table>
+    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Status</th><th>Date</th><th></th></tr></thead>
+    <tbody>
+      {% for b in recent %}
+      <tr>
+        <td>{{ b.booking_id }}</td><td>{{ b.name }}</td><td>{{ b.email }}</td>
+        <td><span class="status-badge status-{{ b.status }}">{{ b.status }}</span></td>
+        <td>{{ b.created_at[:10] }}</td>
+        <td><a href="{{ url_for('admin.booking_detail', booking_id=b.booking_id) }}" class="btn btn-sm">View</a></td>
+      </tr>
+      {% else %}<tr><td colspan="6">No bookings yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends "public/base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="container page-hero-inner">
+    <div class="eyebrow">Gallery</div>
+    <h1>A glimpse into the atmosphere</h1>
+    <p class="page-lead">Explore the calm, the details, and the softness behind every session.</p>
+  </div>
+</section>
+<section class="section section-alt section-compact">
+  <div class="container">
+    <div class="gallery-grid">
+      {% for img in site.gallery %}
+      <div class="gallery-item" onclick="openLightbox('{{ img.filename|media_url }}')">
+        <img src="{{ img.filename|media_url }}" alt="{{ img.alt_text }}" loading="lazy">
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="event.stopPropagation(); closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="" onclick="event.stopPropagation()">
+</div>
+{% endblock %}

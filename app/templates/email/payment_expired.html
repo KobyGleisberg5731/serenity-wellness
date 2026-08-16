@@ -1,0 +1,12 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_button, email_heading %}
+{% set email_subtitle = "Payment expired" %}
+{% block email_body %}
+{{ email_heading("Your payment window expired", "Hi " ~ booking.name ~ ", the crypto payment window for booking " ~ booking.booking_id ~ " has expired. No worries — you can start a new payment anytime.") }}
+
+<p style="margin:0 0 18px;color:{{ muted }};font-size:14px;font-family:Arial,Helvetica,sans-serif;">Open your session page and tap Pay now to choose a payment method again.</p>
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr><td align="center">{{ email_button(pay_url, "Start new payment", true) }}</td></tr>
+</table>
+{% endblock %}

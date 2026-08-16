@@ -1,0 +1,14 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_button, email_heading, message_card %}
+{% set email_subtitle = "Payment review update" %}
+{% block email_body %}
+{{ email_heading("Payment could not be verified", "Hi " ~ booking.name ~ ", we couldn't verify your payment for booking " ~ booking.booking_id ~ ((" via " ~ method_name) if method_name else "") ~ ".") }}
+
+{% if review_note %}{{ message_card(review_note, "#fff5f5", text) }}{% endif %}
+
+<p style="margin:0 0 18px;color:{{ text }};line-height:1.65;font-family:Arial,Helvetica,sans-serif;">If you already paid, please open your session, select the payment method you used, and submit proof again. You can also choose another payment option.</p>
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr><td align="center">{{ email_button(pay_url, "Pay now", true) }}</td></tr>
+</table>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+{% block title %}Contacts{% endblock %}
+{% block content %}
+<div class="admin-header"><h1>Contact Channels</h1></div>
+
+{{ saved_panel('Contact channels saved', [
+  ('Channels', channels|length ~ ' in database', channels|length > 0),
+  ('Active', channels|selectattr('active')|list|length ~ ' active', channels|length > 0),
+]) }}
+
+<div class="card">
+  <form method="POST">
+    <input type="hidden" name="action" value="create">
+    <div class="form-grid">
+      <div class="form-group"><label>Type</label><select name="channel_type"><option>phone</option><option>email</option><option>telegram</option><option>discord</option><option>signal</option><option>imessage</option><option>whatsapp</option></select></div>
+      <div class="form-group"><label>Label</label><input name="label" required></div>
+      <div class="form-group"><label>Value</label><input name="value" required></div>
+      <div class="form-group"><label>Link Template</label><input name="link_template" placeholder="tel:{value}"></div>
+    </div>
+    <button type="submit" class="btn">Add Channel</button>
+  </form>
+</div>
+{% for ch in channels %}
+<div class="card">
+  <form method="POST">
+    <input type="hidden" name="action" value="update">
+    <input type="hidden" name="id" value="{{ ch.id }}">
+    <div class="form-grid">
+      <div class="form-group"><label>Type</label><input name="channel_type" value="{{ ch.channel_type }}"></div>
+      <div class="form-group"><label>Label</label><input name="label" value="{{ ch.label }}"></div>
+      <div class="form-group"><label>Value</label><input name="value" value="{{ ch.value }}"></div>
+      <div class="form-group"><label>Link</label><input name="link_template" value="{{ ch.link_template }}"></div>
+    </div>
+    <label><input type="checkbox" name="active" {% if ch.active %}checked{% endif %}> Active</label>
+    <button type="submit" class="btn btn-sm">Save</button>
+    <button name="action" value="delete" class="btn btn-sm btn-danger">Delete</button>
+  </form>
+</div>
+{% endfor %}
+{% endblock %}

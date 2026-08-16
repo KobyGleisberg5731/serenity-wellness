@@ -1,0 +1,16 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_button, email_heading, info_card %}
+{% set email_subtitle = "Payment approved" %}
+{% block email_body %}
+{{ email_heading("Payment approved", "Great news, " ~ booking.name ~ "! Your payment for booking " ~ booking.booking_id ~ " has been approved and your session is confirmed.") }}
+
+{{ info_card([
+  ("Amount", amount_label),
+  ("Method", method_name),
+  ("Status", "Confirmed"),
+]) }}
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr><td align="center">{{ email_button(track_url, "View your session", true) }}</td></tr>
+</table>
+{% endblock %}

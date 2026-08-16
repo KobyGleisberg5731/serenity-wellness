@@ -1,0 +1,36 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+{% block title %}Bookings{% endblock %}
+{% block content %}
+<div class="admin-header">
+  <h1>Bookings</h1>
+  <div>
+    <a href="?status=pending" class="btn btn-sm btn-outline">Pending</a>
+    <a href="?status=payment_pending" class="btn btn-sm btn-outline">Payment due</a>
+    <a href="?status=confirmed" class="btn btn-sm btn-outline">Confirmed</a>
+    <a href="?" class="btn btn-sm btn-outline">All</a>
+  </div>
+</div>
+
+{{ saved_panel('Bookings overview', [
+  ('Total shown', bookings|length ~ ' bookings', bookings|length > 0),
+  ('Email alerts', 'On' if admin_settings.get('email_on_booking','1')=='1' else 'Off', admin_settings.get('email_on_booking','1')=='1'),
+  ('Telegram', 'On' if admin_settings.get('telegram_notifications_enabled','0')=='1' else 'Off', admin_settings.get('telegram_notifications_enabled','0')=='1'),
+]) }}
+
+<div class="card">
+  <table>
+    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Preferred</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for b in bookings %}
+      <tr>
+        <td>{{ b.booking_id }}</td><td>{{ b.name }}</td><td>{{ b.email }}</td><td>{{ b.phone }}</td>
+        <td>{{ b.preferred_datetime[:40] }}</td>
+        <td><span class="status-badge status-{{ b.status }}">{{ b.status }}</span></td>
+        <td><a href="{{ url_for('admin.booking_detail', booking_id=b.booking_id) }}" class="btn btn-sm">Manage</a></td>
+      </tr>
+      {% else %}<tr><td colspan="7">No bookings found.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

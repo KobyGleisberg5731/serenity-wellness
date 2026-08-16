@@ -1,0 +1,22 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_button, email_heading, info_card %}
+{% set email_subtitle = "Payment proof for approval" %}
+{% block email_body %}
+{{ email_heading("Payment proof submitted", booking.name ~ " submitted payment proof for " ~ booking.booking_id ~ ".") }}
+{{ info_card([
+  ("Method", method_name),
+  ("Note", payment_note),
+]) }}
+{% if proof_url %}
+<p style="margin:0 0 16px;text-align:center;">
+  <img src="{{ proof_url }}" alt="Payment proof" width="480" style="display:block;max-width:100%;height:auto;margin:0 auto;border-radius:12px;border:1px solid rgba(0,0,0,0.08);">
+</p>
+<p style="margin:0 0 16px;text-align:center;font-family:Arial,Helvetica,sans-serif;font-size:13px;">
+  <a href="{{ proof_url }}" style="color:{{ primary }};font-weight:600;text-decoration:none;">View full proof image</a>
+</p>
+{% endif %}
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:24px;">
+  <tr><td align="center">{{ email_button(admin_url, "Review & approve in admin", true) }}</td></tr>
+</table>
+<p style="margin:16px 0 0;text-align:center;color:{{ muted }};font-size:12px;font-family:Arial,Helvetica,sans-serif;">Approve or reject from the booking detail page in admin.</p>
+{% endblock %}

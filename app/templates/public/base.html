@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ site.business_name }}{% endblock %} | {{ site.tagline }}</title>
+  <meta name="description" content="{{ site.settings.get('hero_subtext', '') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/public.css') }}?v=20250816q">
+  <style>
+    :root {
+      --primary: {{ site.theme.primary }};
+      --primary-dark: color-mix(in srgb, {{ site.theme.primary }} 85%, #000);
+      --secondary: {{ site.theme.secondary }};
+      --accent: {{ site.theme.accent }};
+      --text: {{ site.theme.text }};
+      --muted: {{ site.theme.muted }};
+      --font-heading: {{ site.theme.font_heading }};
+      --font-body: {{ site.theme.font_body }};
+      --surface: color-mix(in srgb, {{ site.theme.secondary }} 14%, white);
+      --surface-elevated: color-mix(in srgb, {{ site.theme.secondary }} 8%, white);
+      --border: color-mix(in srgb, {{ site.theme.text }} 8%, transparent);
+      --glass: color-mix(in srgb, {{ site.theme.secondary }} 88%, transparent);
+      --shadow-sm: 0 2px 8px color-mix(in srgb, {{ site.theme.text }} 4%, transparent);
+      --shadow: 0 12px 40px color-mix(in srgb, {{ site.theme.text }} 8%, transparent);
+      --shadow-lg: 0 24px 64px color-mix(in srgb, {{ site.theme.text }} 12%, transparent);
+      accent-color: {{ site.theme.primary }};
+    }
+  </style>
+  {% block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <div class="utility-bar">
+    <div class="utility-bar-marquee" role="marquee" aria-label="Announcements">
+      <div class="utility-marquee-track" data-marquee>
+        {% set bar_msg = (site.settings.get('utility_bar_left', '') ~ '  ✦  ' ~ site.settings.get('utility_bar_right', ''))|trim %}
+        <span>{{ bar_msg if bar_msg else ('Welcome to ' ~ site.business_name) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="{{ url_for('public.home') }}" class="logo">
+        {% if site.settings.get('logo_path') %}
+        <img src="{{ site.settings.logo_path|media_url }}" alt="{{ site.business_name }}" style="height:42px">
+        {% else %}
+        <div class="logo-title">{{ site.business_name }}</div>
+        <div class="logo-sub">{{ site.tagline }}</div>
+        {% endif %}
+      </a>
+      <nav class="nav">
+        <a href="{{ url_for('public.home') }}" class="{% if page=='home' %}active{% endif %}">Home</a>
+        <a href="{{ url_for('public.services') }}" class="{% if page=='services' %}active{% endif %}">Treatments</a>
+        <a href="{{ url_for('public.prices') }}" class="{% if page=='pricing' %}active{% endif %}">Pricing</a>
+        <a href="{{ url_for('public.gallery') }}" class="{% if page=='gallery' %}active{% endif %}">Gallery</a>
+        <a href="{{ url_for('public.reviews') }}" class="{% if page=='reviews' %}active{% endif %}">Reviews</a>
+        <a href="{{ url_for('public.contact') }}" class="{% if page=='contact' %}active{% endif %}">Contact</a>
+        <a href="#" class="btn btn-sm" data-book-session>Book Now</a>
+      </nav>
+      <button class="mobile-toggle" id="mobileToggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav">
+        <span class="hamburger" aria-hidden="true"><span></span><span></span><span></span></span>
+      </button>
+    </div>
+  </header>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <div class="mobile-menu-backdrop" id="mobileMenuBackdrop"></div>
+    <nav id="mobileNav" class="mobile-nav" aria-label="Mobile navigation">
+      <div class="mobile-nav-top">
+        <div class="mobile-nav-brand">
+          <span class="logo-title">{{ site.business_name }}</span>
+          <span class="logo-sub">{{ site.tagline }}</span>
+        </div>
+        <button type="button" class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu">✕</button>
+      </div>
+      <div class="mobile-nav-links">
+        <a href="{{ url_for('public.home') }}" class="{% if page=='home' %}active{% endif %}"><span class="nav-num">01</span> Home</a>
+        <a href="{{ url_for('public.services') }}" class="{% if page=='services' %}active{% endif %}"><span class="nav-num">02</span> Treatments</a>
+        <a href="{{ url_for('public.prices') }}" class="{% if page=='pricing' %}active{% endif %}"><span class="nav-num">03</span> Pricing</a>
+        <a href="{{ url_for('public.gallery') }}" class="{% if page=='gallery' %}active{% endif %}"><span class="nav-num">04</span> Gallery</a>
+        <a href="{{ url_for('public.reviews') }}" class="{% if page=='reviews' %}active{% endif %}"><span class="nav-num">05</span> Reviews</a>
+        <a href="{{ url_for('public.contact') }}" class="{% if page=='contact' %}active{% endif %}"><span class="nav-num">06</span> Contact</a>
+        <a href="{{ url_for('public.track') }}"><span class="nav-num">07</span> Track Booking</a>
+      </div>
+      <div class="mobile-nav-footer">
+        <a href="#" class="btn btn-block" data-book-session>Book a Session</a>
+        <p class="mobile-nav-note">Private wellness · By appointment</p>
+      </div>
+    </nav>
+  </div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="container">{% for cat, msg in messages %}<div class="flash {{ cat }}">{{ msg }}</div>{% endfor %}</div>
+    {% endif %}
+  {% endwith %}
+
+  {% block content %}{% endblock %}
+
+  {% if site.settings.get('welcome_modal_enabled') == '1' %}
+  <div class="welcome-modal" id="welcomeModal" style="display:none">
+    <div class="welcome-card">
+      <button class="welcome-close" type="button" onclick="closeWelcome()" aria-label="Close">✕</button>
+      <div class="eyebrow">Welcome</div>
+      <h2>{{ site.settings.get('welcome_modal_title', 'Welcome') }}</h2>
+      <p>{{ site.settings.get('welcome_modal_body', '') }}</p>
+      <label class="welcome-check"><input type="checkbox" id="dontShowAgain"> Don't show again</label>
+      <button type="button" class="btn" onclick="closeWelcome()">Continue</button>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="booking-modal" id="bookingModal" style="display:none" aria-hidden="true">
+    <div class="booking-card" role="dialog" aria-modal="true" aria-labelledby="bookingModalTitle">
+      <button type="button" class="booking-close" onclick="closeBookingModal()" aria-label="Close">✕</button>
+
+      <div id="bookingFormStep">
+        <div class="booking-modal-header">
+          <div class="eyebrow">Reserve</div>
+          <h2 id="bookingModalTitle">Book your session</h2>
+          <p class="booking-lead" id="bookingModalSubtitle">A few quick steps — we'll confirm your appointment shortly.</p>
+        </div>
+
+        <div class="booking-progress" id="bookingProgress">
+          <div class="booking-progress-track"><div class="booking-progress-fill" id="bookingProgressFill"></div></div>
+          <div class="booking-progress-steps">
+            <span class="booking-progress-step active" data-step="1">Session</span>
+            <span class="booking-progress-step" data-step="2" id="progressMasseuse">Therapist</span>
+            <span class="booking-progress-step" data-step="3">Details</span>
+          </div>
+        </div>
+
+        <form id="bookingForm" class="booking-form">
+          <input type="hidden" name="masseuse_id" id="bookMasseuseId" value="">
+
+          <div class="booking-step-panel active" data-step="1">
+            <p class="booking-section-label">Choose your session</p>
+            <div class="form-group">
+              <label>Treatment</label>
+              <select name="service_id" id="bookService">
+                <option value="">Choose a treatment (optional)</option>
+                {% for svc in site.services %}
+                <option value="{{ svc.id }}">{{ svc.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Session length</label>
+              <select name="pricing_id" id="bookPricing">
+                <option value="">Choose duration (optional)</option>
+                {% for tier in site.pricing %}
+                <option value="{{ tier.id }}" data-label="{{ tier.label }}">{{ tier.label }} — ${{ tier.price|int }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="booking-step-panel" data-step="2" id="masseuseStep">
+            <p class="booking-section-label">Choose your therapist</p>
+            <p class="booking-hint">Optional — select a specialist or skip for no preference.</p>
+            <div class="masseuse-picker" id="masseusePicker">
+              <button type="button" class="masseuse-option selected" data-masseuse-id="">
+                <span class="masseuse-avatar masseuse-avatar-any">✦</span>
+                <span class="masseuse-name">No preference</span>
+                <span class="masseuse-sub">Best available</span>
+              </button>
+              {% for m in site.masseuses %}
+              <button type="button" class="masseuse-option" data-masseuse-id="{{ m.id }}">
+                {% if m.image_path %}
+                <img class="masseuse-avatar" src="{{ m.image_path|media_url }}" alt="{{ m.name }}">
+                {% else %}
+                <span class="masseuse-avatar masseuse-avatar-any">{{ m.name[:1] }}</span>
+                {% endif %}
+                <span class="masseuse-name">{{ m.name }}</span>
+                <span class="masseuse-sub">{% if m.bio %}{{ m.bio[:42] }}{% if m.bio|length > 42 %}…{% endif %}{% else %}Wellness specialist{% endif %}</span>
+              </button>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="booking-step-panel" data-step="3">
+            <p class="booking-section-label">Your details</p>
+            <div class="form-grid-2">
+              <div class="form-group"><label>Full name</label><input name="name" placeholder="Jane Doe" required></div>
+              <div class="form-group"><label>Email</label><input name="email" type="email" placeholder="you@email.com" required></div>
+            </div>
+            <div class="form-grid-2">
+              <div class="form-group"><label>Phone</label><input name="phone" type="tel" placeholder="Optional"></div>
+              <div class="form-group"><label>Zip code</label><input name="zip_code" placeholder="12345" required></div>
+            </div>
+            <div class="form-grid-2 datetime-grid">
+              <div class="form-group">
+                <label>Preferred date</label>
+                <input type="date" name="preferred_date" id="bookDate" class="themed-input-date" required>
+              </div>
+              <div class="form-group">
+                <label>Preferred time</label>
+                <input type="time" name="preferred_time" id="bookTime" class="themed-input-time" required>
+              </div>
+            </div>
+            <input type="hidden" name="preferred_datetime" id="bookPreferredDatetime">
+            <div class="form-group">
+              <label>Notes</label>
+              <textarea name="message" rows="2" placeholder="Preferences, focus areas, or questions"></textarea>
+            </div>
+          </div>
+
+          <p class="form-error" id="bookingError" style="display:none"></p>
+
+          <div class="booking-actions">
+            <button type="button" class="btn btn-outline" id="bookingBackBtn" style="display:none">Back</button>
+            <button type="button" class="btn booking-next-btn" id="bookingNextBtn">Continue</button>
+            <button type="submit" class="btn btn-block booking-submit" id="bookingSubmitBtn" style="display:none">Request appointment</button>
+          </div>
+        </form>
+      </div>
+
+      <div id="bookingSuccessStep" class="booking-success" style="display:none">
+        <div class="booking-success-icon">✓</div>
+        <div class="eyebrow">Confirmed</div>
+        <h2>You're all set</h2>
+        <p class="booking-lead">A confirmation email is on its way. Save your booking ID to track progress and chat with us anytime.</p>
+        <p class="booking-id" id="successBookingId"></p>
+        <a href="#" class="btn btn-block" id="successTrackLink">Track session & chat</a>
+        <button type="button" class="btn btn-outline btn-block booking-close-btn" onclick="closeBookingModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="support-chat-widget" id="supportChatWidget" data-faqs='{{ site.support_faqs|tojson }}'>
+    <div class="support-chat-panel" id="supportChatPanel" aria-hidden="true">
+      <div class="support-chat-header">
+        <div>
+          <p class="support-chat-eyebrow">We're here to help</p>
+          <h3>Questions &amp; support</h3>
+        </div>
+        <button type="button" class="support-chat-close" id="supportChatClose" aria-label="Close chat">✕</button>
+      </div>
+      <div class="support-chat-thread" id="supportChatThread">
+        <div class="support-chat-bubble support-chat-bot">
+          <p>Hi! How can we help you today? Tap a question below or reach out directly.</p>
+        </div>
+      </div>
+      <div class="support-chat-suggestions" id="supportChatSuggestions" hidden></div>
+      <div class="support-chat-footer">
+        <a href="{{ url_for('public.track') }}" class="support-chat-link" id="supportTrackLink">Track my booking</a>
+        <a href="{{ url_for('public.contact') }}" class="support-chat-link">Contact us</a>
+        <button type="button" class="btn btn-sm" data-book-session>Book a session</button>
+      </div>
+    </div>
+    <button type="button" class="floating-chat" id="floatingChat" aria-label="Open support chat" aria-expanded="false">
+      <span>💬</span>
+      <small>Help</small>
+    </button>
+  </div>
+
+  <div class="container">
+    <div class="cta-banner">
+      <h2>Ready to relax, reset, and glow?</h2>
+      <p>Step into a soft private space designed for calm, comfort, and full-body renewal.</p>
+      <div class="cta-actions">
+        <a href="#" class="btn" data-book-session>Book a Session</a>
+        <a href="{{ url_for('public.contact') }}" class="btn btn-outline">Ask a Question</a>
+      </div>
+    </div>
+  </div>
+
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <h3>{{ site.business_name }}</h3>
+        <p>{{ site.settings.get('footer_tagline','') }}</p>
+        <p style="font-size:0.9rem;opacity:0.8;margin-top:1rem">{{ site.settings.get('footer_about','') }}</p>
+      </div>
+      <div>
+        <h4>Explore</h4>
+        <ul>
+          <li><a href="{{ url_for('public.home') }}">Home</a></li>
+          <li><a href="{{ url_for('public.services') }}">Treatments</a></li>
+          <li><a href="{{ url_for('public.prices') }}">Pricing</a></li>
+          <li><a href="{{ url_for('public.gallery') }}">Gallery</a></li>
+          <li><a href="{{ url_for('public.reviews') }}">Reviews</a></li>
+          <li><a href="{{ url_for('public.contact') }}">Contact</a></li>
+          <li><a href="{{ url_for('public.track') }}">Track Booking</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contact</h4>
+        <ul>
+          {% for ch in site.contacts %}
+          <li><a href="{{ ch|contact_link }}">{{ ch.label }}: {{ ch.value }}</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+    <div class="container" style="text-align:center;padding-top:2.5rem;opacity:0.5;font-size:0.85rem">
+      © {{ site.business_name }}. {{ site.settings.get('footer_motto','') }}
+    </div>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+  <script src="{{ url_for('static', filename='js/public.js') }}?v=20250816q"></script>
+</body>
+</html>

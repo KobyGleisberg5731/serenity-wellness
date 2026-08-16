@@ -1,0 +1,18 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_button, email_heading, info_card %}
+{% set email_subtitle = "Payment pending review" %}
+{% block email_body %}
+{{ email_heading("Payment pending confirmation", "Hi " ~ booking.name ~ ", we received your payment proof for booking " ~ booking.booking_id ~ ". Our team is reviewing it now.") }}
+
+{{ info_card([
+  ("Amount", amount_label),
+  ("Method", method_name),
+  ("Status", "Pending review"),
+]) }}
+
+<p style="margin:0 0 18px;color:{{ muted }};font-size:14px;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">You'll receive another email once your payment is approved. If you paid using a different method, open your session and select the correct payment option.</p>
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr><td align="center">{{ email_button(track_url, "View session", true) }}</td></tr>
+</table>
+{% endblock %}

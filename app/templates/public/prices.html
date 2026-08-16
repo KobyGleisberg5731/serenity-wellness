@@ -1,0 +1,29 @@
+{% extends "public/base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="container page-hero-inner">
+    <div class="eyebrow">Pricing</div>
+    <h1>Clear, calm pricing</h1>
+    <p class="page-lead">Choose the session length that fits your time and wellness needs.</p>
+  </div>
+</section>
+<section class="section section-compact">
+  <div class="container">
+    <div class="grid-3">
+      {% for tier in site.pricing %}
+      <div class="card card-hover pricing-card {% if tier.duration_minutes == 90 %}featured{% endif %}">
+        <span class="badge">Wellness session</span>
+        <h2 style="margin:1rem 0 0.5rem">{{ tier.label }}</h2>
+        <div class="price">${{ tier.price|int }}</div>
+        <p style="color:var(--muted);font-size:0.9rem;margin:1rem 0 1.5rem">{{ tier.description }}</p>
+        <a href="#" class="btn btn-sm btn-block" data-book-session data-pricing-id="{{ tier.id }}" data-pricing-label="{{ tier.label }}">Book This Session</a>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="card" style="margin-top:3rem;text-align:center;padding:2.5rem">
+      <h2>Flexible payment options</h2>
+      <p class="text-muted">Chime, Apple Pay, PayPal, Bitcoin, and USDT accepted. Details confirmed during booking.</p>
+    </div>
+  </div>
+</section>
+{% endblock %}

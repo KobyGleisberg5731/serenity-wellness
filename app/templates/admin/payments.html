@@ -1,0 +1,81 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+{% block title %}Payments{% endblock %}
+{% block content %}
+<div class="admin-header"><h1>Payment Methods</h1></div>
+
+{{ saved_panel('Payment settings saved', [
+  ('Methods', methods|length ~ ' configured', methods|length > 0),
+  ('Crypto', 'NowPayments ' ~ ('enabled' if settings.get('nowpayments_api_key') else 'not configured'), settings.get('nowpayments_api_key')|length > 0),
+]) }}
+
+<div class="card">
+  <h2>Crypto payments (NowPayments)</h2>
+  <p class="section-hint">Optional — lets customers pay with crypto on the tracking page. Get keys from <a href="https://nowpayments.io" target="_blank" rel="noopener">nowpayments.io</a>.</p>
+  <form method="POST">
+    <input type="hidden" name="action" value="save_crypto">
+    <div class="form-grid">
+      <div class="form-group"><label>API key</label><input name="nowpayments_api_key" value="{{ settings.get('nowpayments_api_key','') }}" placeholder="Leave blank to keep saved key"></div>
+      <div class="form-group"><label>IPN secret</label><input name="nowpayments_ipn_secret" placeholder="Password saved — leave blank to keep"></div>
+      <div class="form-group"><label>Fee % (added to booking cost)</label><input name="np_fee_percentage" type="number" step="0.1" min="0" value="{{ settings.get('np_fee_percentage','0') }}"></div>
+    </div>
+    <label><input type="checkbox" name="payment_crypto_enabled" {% if settings.get('payment_crypto_enabled','1')=='1' %}checked{% endif %}> Show crypto option on Pay Now screen</label>
+    <p class="section-hint" style="margin-top:0.75rem">Webhook URL: <code>{{ settings.get('site_base_url','https://yoursite.com') }}/api/nowpayments/webhook</code></p>
+    <button type="submit" class="btn" style="margin-top:1rem">Save crypto settings</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Add payment method</h2>
+  <form method="POST">
+    <input type="hidden" name="action" value="create">
+    <div class="form-grid">
+      <div class="form-group"><label>Name</label><input name="name" placeholder="Venmo, Zelle, Cash App…" required></div>
+      <div class="form-group">
+        <label>Type</label>
+        <select name="method_type">
+          <option value="venmo">Venmo</option>
+          <option value="zelle">Zelle</option>
+          <option value="cashapp">Cash App</option>
+          <option value="paypal">PayPal</option>
+          <option value="crypto">Crypto (manual)</option>
+          <option value="bank">Bank transfer</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Handle / wallet</label><input name="wallet_or_handle" placeholder="@username or wallet address"></div>
+      <div class="form-group"><label>Pay link (optional)</label><input name="pay_link" placeholder="https://venmo.com/..."></div>
+    </div>
+    <div class="form-group"><label>Instructions for customer</label><textarea name="instructions" rows="3" placeholder="Send $250 to @YourVenmo with booking ID in the note." required></textarea></div>
+    <button type="submit" class="btn">Add method</button>
+  </form>
+</div>
+
+{% for method in methods %}
+<div class="card">
+  <form method="POST">
+    <input type="hidden" name="action" value="update">
+    <input type="hidden" name="id" value="{{ method.id }}">
+    <div class="form-grid">
+      <div class="form-group"><label>Name</label><input name="name" value="{{ method.name }}" required></div>
+      <div class="form-group">
+        <label>Type</label>
+        <select name="method_type">
+          {% for t in ['venmo','zelle','cashapp','paypal','crypto','bank','other'] %}
+          <option value="{{ t }}" {% if method.method_type==t %}selected{% endif %}>{{ t|title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group"><label>Handle / wallet</label><input name="wallet_or_handle" value="{{ method.wallet_or_handle }}"></div>
+      <div class="form-group"><label>Pay link</label><input name="pay_link" value="{{ method.pay_link }}"></div>
+    </div>
+    <div class="form-group"><label>Instructions</label><textarea name="instructions" rows="3" required>{{ method.instructions }}</textarea></div>
+    <label><input type="checkbox" name="active" {% if method.active %}checked{% endif %}> Active</label>
+    <div style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap">
+      <button type="submit" class="btn btn-sm">Save</button>
+      <button name="action" value="delete" class="btn btn-sm btn-danger">Delete</button>
+    </div>
+  </form>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,170 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+{% block title %}Email & SMTP{% endblock %}
+{% block content %}
+<div class="admin-header"><h1>Email & SMTP</h1></div>
+
+{{ saved_panel('Email configuration', [
+  ('Provider', smtp_presets.get(current_smtp_preset, {}).get('name', current_smtp_preset), true),
+  ('SMTP email', settings.get('smtp_user') or '—', settings.get('smtp_user')),
+  ('Password', 'Configured securely' if settings.get('smtp_password') else '—', settings.get('smtp_password')),
+  ('From email', settings.get('smtp_from_email') or settings.get('smtp_user') or '—', settings.get('smtp_from_email') or settings.get('smtp_user')),
+  ('Admin alerts', settings.get('admin_notification_email') or '—', settings.get('admin_notification_email')),
+  ('Booking emails', 'On' if settings.get('email_on_booking','1')=='1' else 'Off', settings.get('email_on_booking','1')=='1'),
+]) }}
+
+<div class="card smtp-setup-card">
+  <div class="smtp-setup-banner">
+    <strong>Quick setup</strong>
+    <span>Choose your email provider below, then enter your email and password.</span>
+  </div>
+
+  <form method="POST" id="smtpForm" autocomplete="off">
+    <input type="hidden" name="action" value="save">
+    <input type="hidden" name="smtp_preset" id="smtpPresetInput" value="{{ current_smtp_preset }}">
+
+    <div class="form-group">
+      <label>Email provider preset</label>
+      <select id="smtpPresetSelect" class="smtp-preset-select">
+        {% for pid, preset in smtp_presets.items() %}
+        <option value="{{ pid }}" {% if current_smtp_preset == pid %}selected{% endif %}
+          data-host="{{ preset.host }}"
+          data-port="{{ preset.port }}"
+          data-tls="{{ preset.use_tls }}"
+          data-hint="{{ preset.hint }}"
+          data-default-user="{{ preset.get('default_user','') }}">
+          {{ preset.name }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <p id="smtpHint" class="smtp-hint">{{ smtp_presets.get(current_smtp_preset, {}).hint }}</p>
+
+    <div class="smtp-preset-grid" aria-label="Or pick a provider card">
+      {% for pid, preset in smtp_presets.items() %}
+      <button type="button"
+        class="smtp-preset-card {% if current_smtp_preset == pid %}selected{% endif %}"
+        data-preset-id="{{ pid }}"
+        data-host="{{ preset.host }}"
+        data-port="{{ preset.port }}"
+        data-tls="{{ preset.use_tls }}"
+        data-hint="{{ preset.hint }}"
+        data-default-user="{{ preset.get('default_user','') }}">
+        <strong>{{ preset.name }}</strong>
+        <span>{{ preset.description }}</span>
+      </button>
+      {% endfor %}
+    </div>
+
+    <div class="card-inner credentials-card">
+      <h3>Your credentials</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label id="smtpUserLabel">Email / Username</label>
+          <input name="smtp_user" id="smtpUser" type="email" value="{{ settings.get('smtp_user','') }}" placeholder="you@gmail.com" autocomplete="section-email username" required>
+        </div>
+        <div class="form-group">
+          <label>Password / App Password</label>
+          <input name="smtp_password" id="smtpPassword" type="password" placeholder="{% if settings.get('smtp_password') %}Leave blank to keep saved password{% else %}App password or SMTP password{% endif %}" autocomplete="section-email new-password" {% if not settings.get('smtp_password') %}required{% endif %}>
+          {% if settings.get('smtp_password') %}<span class="field-saved-hint">Password saved in database</span>{% endif %}
+        </div>
+        <div class="form-group"><label>From Name</label><input name="smtp_from_name" id="smtpFromName" value="{{ settings.get('smtp_from_name', site.business_name) }}" autocomplete="off"></div>
+        <div class="form-group"><label>From Email</label><input name="smtp_from_email" id="smtpFromEmail" type="email" value="{{ settings.get('smtp_from_email','') }}" placeholder="Same as username" autocomplete="section-email email"></div>
+        <div class="form-group"><label>Admin Notification Email</label><input name="admin_notification_email" id="adminNotifyEmail" type="email" value="{{ settings.get('admin_notification_email','') }}" placeholder="Where new booking alerts go" autocomplete="off"></div>
+      </div>
+    </div>
+
+    <details id="advancedSmtp" {% if current_smtp_preset == 'custom' %}open{% endif %}>
+      <summary>Advanced SMTP settings (host, port, TLS)</summary>
+      <div class="form-grid" style="margin-top:1rem">
+        <div class="form-group"><label>SMTP Host</label><input name="smtp_host" id="smtpHost" value="{{ settings.get('smtp_host','') }}"></div>
+        <div class="form-group"><label>SMTP Port</label><input name="smtp_port" id="smtpPort" value="{{ settings.get('smtp_port','587') }}"></div>
+      </div>
+      <label><input type="checkbox" name="smtp_use_tls" id="smtpUseTls" {% if settings.get('smtp_use_tls','1')=='1' %}checked{% endif %}> Use TLS</label>
+    </details>
+
+    <div class="smtp-toggles">
+      <label><input type="checkbox" name="email_on_booking" {% if settings.get('email_on_booking','1')=='1' %}checked{% endif %}> Email on new booking</label>
+      <label><input type="checkbox" name="email_on_status_change" {% if settings.get('email_on_status_change','1')=='1' %}checked{% endif %}> Email on status change</label>
+      <label><input type="checkbox" name="email_on_customer_message" {% if settings.get('email_on_customer_message','1')=='1' %}checked{% endif %}> Email when customer sends a message</label>
+      <label><input type="checkbox" name="email_on_chat_message" {% if settings.get('email_on_chat_message','1')=='1' %}checked{% endif %}> Email customer when you reply in chat</label>
+    </div>
+
+    <button type="submit" class="btn">Save Email Settings</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Test Email</h2>
+  <form method="POST" autocomplete="off">
+    <input type="hidden" name="action" value="test">
+    <div class="form-group"><label>Send test to</label><input name="test_email" type="email" value="{{ settings.get('smtp_user','') }}" autocomplete="off" required></div>
+    <button type="submit" class="btn">Send Test</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const presetInput = document.getElementById('smtpPresetInput');
+const presetSelect = document.getElementById('smtpPresetSelect');
+const smtpHost = document.getElementById('smtpHost');
+const smtpPort = document.getElementById('smtpPort');
+const smtpUseTls = document.getElementById('smtpUseTls');
+const smtpHint = document.getElementById('smtpHint');
+const smtpUser = document.getElementById('smtpUser');
+const smtpFromEmail = document.getElementById('smtpFromEmail');
+const adminNotifyEmail = document.getElementById('adminNotifyEmail');
+const advancedSmtp = document.getElementById('advancedSmtp');
+const smtpUserLabel = document.getElementById('smtpUserLabel');
+
+function applyPresetFromOption(opt) {
+  if (!opt) return;
+  const id = opt.value;
+  presetInput.value = id;
+  presetSelect.value = id;
+  document.querySelectorAll('.smtp-preset-card').forEach(c => {
+    c.classList.toggle('selected', c.dataset.presetId === id);
+  });
+  if (id !== 'custom') {
+    smtpHost.value = opt.dataset.host || '';
+    smtpPort.value = opt.dataset.port || '587';
+    smtpUseTls.checked = opt.dataset.tls === '1';
+    advancedSmtp.open = false;
+  } else {
+    advancedSmtp.open = true;
+  }
+  const hint = opt.dataset.hint || '';
+  smtpHint.textContent = hint;
+  smtpHint.style.display = hint ? 'block' : 'none';
+  const defaultUser = opt.dataset.defaultUser || '';
+  if (defaultUser) {
+    smtpUser.value = defaultUser;
+    smtpUserLabel.textContent = 'Username';
+    smtpUser.type = 'text';
+  } else if (id !== 'custom') {
+    smtpUserLabel.textContent = 'Email / Username';
+    smtpUser.type = 'email';
+  }
+}
+
+presetSelect?.addEventListener('change', () => {
+  applyPresetFromOption(presetSelect.selectedOptions[0]);
+});
+
+document.querySelectorAll('.smtp-preset-card').forEach(card => {
+  card.addEventListener('click', () => {
+    const id = card.dataset.presetId;
+    presetSelect.value = id;
+    applyPresetFromOption(presetSelect.selectedOptions[0]);
+  });
+});
+
+smtpUser?.addEventListener('input', () => {
+  const val = smtpUser.value.trim();
+  if (val.includes('@') && !smtpFromEmail.value) smtpFromEmail.value = val;
+  if (val.includes('@') && !adminNotifyEmail.value) adminNotifyEmail.value = val;
+});
+</script>
+{% endblock %}

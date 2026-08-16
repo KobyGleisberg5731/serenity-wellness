@@ -1,0 +1,43 @@
+{% macro save_toast() %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="save-toast-stack" id="saveToastStack">
+      {% for cat, msg in messages %}
+      <div class="save-toast save-toast-{{ cat }}" role="alert">
+        <span class="save-toast-icon">{% if cat == 'success' %}✓{% else %}!{% endif %}</span>
+        <div class="save-toast-body">
+          <strong>{% if cat == 'success' %}Saved{% else %}Error{% endif %}</strong>
+          <span>{{ msg }}</span>
+        </div>
+        <button type="button" class="save-toast-close" aria-label="Dismiss">✕</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  {% endwith %}
+{% endmacro %}
+
+{% macro saved_panel(title, items) %}
+<div class="saved-panel">
+  <div class="saved-panel-head">
+    <span class="saved-panel-icon">✓</span>
+    <div>
+      <strong>{{ title }}</strong>
+      <span class="saved-panel-sub">Stored in database — persists across restarts</span>
+    </div>
+  </div>
+  <dl class="saved-panel-grid">
+    {% for label, value, ok in items %}
+    <div class="saved-panel-row {% if ok %}is-saved{% else %}is-missing{% endif %}">
+      <dt>{{ label }}</dt>
+      <dd>
+        <span class="saved-badge {% if ok %}saved-badge-ok{% else %}saved-badge-warn{% endif %}">
+          {% if ok %}Saved{% else %}Not set{% endif %}
+        </span>
+        <span class="saved-value">{{ value }}</span>
+      </dd>
+    </div>
+    {% endfor %}
+  </dl>
+</div>
+{% endmacro %}

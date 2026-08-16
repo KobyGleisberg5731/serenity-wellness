@@ -1,0 +1,14 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_button, email_heading, info_card %}
+{% set email_subtitle = "Payment expired" %}
+{% block email_body %}
+{{ email_heading("Crypto payment expired", "The crypto payment for " ~ booking.booking_id ~ " — " ~ booking.name ~ " — expired without completion.") }}
+{{ info_card([
+  ("Amount", amount_label),
+  ("Currency", pay_currency),
+]) }}
+<p style="margin:0 0 18px;color:{{ muted }};font-size:14px;font-family:Arial,Helvetica,sans-serif;">The customer was emailed and can start a new payment from their session page.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr><td align="center">{{ email_button(admin_url, "View booking", true) }}</td></tr>
+</table>
+{% endblock %}

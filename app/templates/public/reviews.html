@@ -1,0 +1,38 @@
+{% extends "public/base.html" %}
+{% block content %}
+<section class="page-hero">
+  <div class="container page-hero-inner">
+    <div class="eyebrow">Reviews</div>
+    <h1>Guest experiences</h1>
+    <p class="page-lead">{{ avg_rating|default(site.avg_rating) }} out of 5 · {{ all_reviews|length }} reviews from our community</p>
+  </div>
+</section>
+<section class="section section-compact">
+  <div class="container">
+    <div class="grid-2">
+      {% for r in all_reviews %}
+      <div class="card card-hover">
+        <div class="stars">{% for i in range(r.rating) %}★{% endfor %}</div>
+        <h3>{{ r.title }}</h3>
+        <p style="color:var(--muted)">{{ r.body }}</p>
+        <p><strong>— {{ r.author_name }}</strong> <span style="color:var(--muted);font-size:0.85rem">{{ r.review_date }}</span></p>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="card" style="margin-top:3rem">
+      <h2>Leave a review</h2>
+      <form action="{{ url_for('api.submit_review') }}" method="POST" id="reviewForm">
+        <div class="form-group"><input name="author_name" placeholder="Your name (optional)"></div>
+        <div class="form-group"><input name="title" placeholder="Review title" required></div>
+        <div class="form-group"><textarea name="body" placeholder="Share your experience" rows="4" required></textarea></div>
+        <div class="form-group">
+          <select name="rating">
+            {% for i in range(5,0,-1) %}<option value="{{ i }}">{{ i }} Stars</option>{% endfor %}
+          </select>
+        </div>
+        <button type="submit" class="btn">Submit review</button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

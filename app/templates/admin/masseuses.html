@@ -1,0 +1,42 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+{% block title %}Masseuses{% endblock %}
+{% block content %}
+<div class="admin-header"><h1>Masseuses / Models</h1></div>
+
+{{ saved_panel('Team saved', [
+  ('Masseuses', masseuses|length ~ ' in database', masseuses|length > 0),
+  ('Active', masseuses|selectattr('active')|list|length ~ ' on site', masseuses|length > 0),
+]) }}
+
+<div class="card">
+  <h2>Add Masseuse</h2>
+  <form method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="create">
+    <div class="form-grid">
+      <div class="form-group"><label>Name</label><input name="name" required></div>
+      <div class="form-group"><label>Photo</label><input name="image" type="file" accept="image/*"></div>
+    </div>
+    <div class="form-group"><label>Bio</label><textarea name="bio" rows="3"></textarea></div>
+    <div class="form-group"><label>Specialties (one per line)</label><textarea name="specialties" rows="2"></textarea></div>
+    <button type="submit" class="btn">Add</button>
+  </form>
+</div>
+{% for m in masseuses %}
+<div class="card" style="display:flex;gap:1.5rem;align-items:start">
+  {% if m.image_path %}<img src="{{ m.image_path|media_url }}" style="width:80px;height:80px;border-radius:50%;object-fit:cover">{% endif %}
+  <form method="POST" enctype="multipart/form-data" style="flex:1">
+    <input type="hidden" name="action" value="update">
+    <input type="hidden" name="id" value="{{ m.id }}">
+    <div class="form-group"><label>Name</label><input name="name" value="{{ m.name }}"></div>
+    <div class="form-group"><label>Bio</label><textarea name="bio" rows="2">{{ m.bio }}</textarea></div>
+    <div class="form-group"><label>Specialties</label><textarea name="specialties" rows="2">{% for s in m.specialties %}{{ s }}
+{% endfor %}</textarea></div>
+    <div class="form-group"><label>New Photo</label><input name="image" type="file" accept="image/*"></div>
+    <label><input type="checkbox" name="active" {% if m.active %}checked{% endif %}> Active</label>
+    <button type="submit" class="btn btn-sm">Save</button>
+    <button name="action" value="delete" class="btn btn-sm btn-danger">Delete</button>
+  </form>
+</div>
+{% endfor %}
+{% endblock %}

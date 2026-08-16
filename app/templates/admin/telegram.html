@@ -1,0 +1,107 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+
+{% block title %}Telegram{% endblock %}
+
+{% block content %}
+
+<div class="admin-header"><h1>Telegram Notifications</h1></div>
+
+{{ saved_panel('Telegram configuration', [
+  ('Notifications', 'Enabled' if settings.get('telegram_notifications_enabled','0')=='1' else 'Disabled', settings.get('telegram_notifications_enabled','0')=='1'),
+  ('Bot token', 'Configured securely' if settings.get('telegram_bot_token') else '—', settings.get('telegram_bot_token')),
+  ('Admin chat ID', settings.get('telegram_admin_chat_id') or '—', settings.get('telegram_admin_chat_id')),
+  ('Polling', 'Active' if polling_active and settings.get('telegram_notifications_enabled','0')=='1' else 'Inactive', polling_active or settings.get('telegram_notifications_enabled','0')!='1'),
+]) }}
+
+
+
+<div class="card">
+
+  <p class="section-hint">No webhook needed — the app polls Telegram in the background. Booking alerts, customer messages, status buttons, and direct replies all work while the server is running.</p>
+
+  <form method="POST" autocomplete="off">
+
+    <input type="hidden" name="action" value="save">
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label>Bot Token</label>
+        <input name="telegram_bot_token" type="password" placeholder="{% if settings.get('telegram_bot_token') %}Leave blank to keep saved token{% else %}123456:ABC...{% endif %}" autocomplete="off">
+        {% if settings.get('telegram_bot_token') %}<span class="field-saved-hint">Bot token saved in database</span>{% endif %}
+      </div>
+
+      <div class="form-group"><label>Admin Chat ID</label><input name="telegram_admin_chat_id" value="{{ settings.get('telegram_admin_chat_id','') }}" placeholder="Your Telegram user/group chat ID" autocomplete="off"></div>
+
+    </div>
+
+    <label><input type="checkbox" name="telegram_notifications_enabled" {% if settings.get('telegram_notifications_enabled','0')=='1' %}checked{% endif %}> Enable Telegram notifications</label>
+
+
+
+    <div class="card-inner" style="margin:1rem 0">
+
+      <h3>Connection status</h3>
+
+      {% if polling_active and settings.get('telegram_notifications_enabled','0')=='1' %}
+
+      <p style="margin:0;color:#065f46;font-size:0.9rem">● Polling active — inline buttons will work while this app is running</p>
+
+      {% elif settings.get('telegram_notifications_enabled','0')=='1' %}
+
+      <p style="margin:0;color:#92400e;font-size:0.9rem">○ Polling starting… save settings again if buttons don't respond</p>
+
+      {% else %}
+
+      <p style="margin:0;color:var(--admin-muted);font-size:0.9rem">○ Notifications disabled</p>
+
+      {% endif %}
+
+    </div>
+
+
+
+    <div style="margin-top:1.25rem;display:flex;gap:0.75rem;flex-wrap:wrap">
+
+      <button type="submit" class="btn">Save &amp; Restart Polling</button>
+
+    </div>
+
+  </form>
+
+</div>
+
+
+
+<div class="card">
+
+  <h2>Test &amp; setup</h2>
+
+  <form method="POST" style="margin-bottom:1rem" autocomplete="off">
+
+    <input type="hidden" name="action" value="test">
+
+    <input type="hidden" name="telegram_admin_chat_id" value="{{ settings.get('telegram_admin_chat_id','') }}">
+
+    <button type="submit" class="btn btn-outline">Send Test Message</button>
+
+  </form>
+
+  <ol style="color:var(--admin-muted);line-height:1.8;font-size:0.9rem;margin:0;padding-left:1.2rem">
+
+    <li>Message <strong>@BotFather</strong> → <code>/newbot</code> → copy bot token</li>
+
+    <li>Message <strong>@userinfobot</strong> to get your Chat ID</li>
+
+    <li>Save above — new bookings and customer chat messages will ping Telegram</li>
+    <li>Tap <strong>Reply to customer</strong> on a message alert, or reply directly to the notification</li>
+    <li>Or send <code>BK-1234: your reply</code> — the customer gets an email and sees it in session chat</li>
+    <li>Use inline buttons to update booking status instantly</li>
+
+  </ol>
+
+</div>
+
+{% endblock %}
+

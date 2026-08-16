@@ -1,0 +1,11 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_button, email_heading, message_card %}
+{% set email_subtitle = "New customer message" %}
+{% block email_body %}
+{{ email_heading("New session message", "Booking " ~ booking.booking_id ~ " · " ~ booking.name) }}
+{{ message_card(message_body) }}
+<p style="margin:16px 0 0;color:{{ muted }};font-size:13px;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">Reply from the admin panel, or answer directly in Telegram by replying to the notification.</p>
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:24px;">
+  <tr><td align="center">{{ email_button(admin_url, "Open booking", true) }}</td></tr>
+</table>
+{% endblock %}

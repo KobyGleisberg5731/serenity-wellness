@@ -1,0 +1,18 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+{% block title %}Account{% endblock %}
+{% block content %}
+<div class="admin-header"><h1>Account</h1></div>
+
+{{ saved_panel('Account configuration', [
+  ('Admin email', session.get('admin_email') or '—', session.get('admin_email')),
+  ('Password', 'Set — change below to update', true),
+]) }}
+
+<div class="card">
+  <form method="POST">
+    <div class="form-group"><label>New Password</label><input name="new_password" type="password" required></div>
+    <button type="submit" class="btn">Update Password</button>
+  </form>
+</div>
+{% endblock %}

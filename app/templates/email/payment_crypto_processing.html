@@ -1,0 +1,18 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_button, email_heading, info_card %}
+{% set email_subtitle = "Payment detected" %}
+{% block email_body %}
+{{ email_heading("Payment detected on-chain", "Hi " ~ booking.name ~ ", we've detected your crypto payment for booking " ~ booking.booking_id ~ ". It's being confirmed on the network.") }}
+
+{{ info_card([
+  ("Amount", amount_label),
+  ("Currency", pay_currency),
+  ("Status", status_label),
+]) }}
+
+<p style="margin:0 0 18px;color:{{ muted }};font-size:14px;font-family:Arial,Helvetica,sans-serif;">We'll email you again once your payment is fully confirmed.</p>
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr><td align="center">{{ email_button(track_url, "Track payment", true) }}</td></tr>
+</table>
+{% endblock %}

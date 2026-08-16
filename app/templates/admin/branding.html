@@ -1,0 +1,223 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+
+{% block title %}Branding{% endblock %}
+
+{% block content %}
+
+<div class="admin-header"><h1>Branding & Business</h1></div>
+
+{{ saved_panel('Branding configuration', [
+  ('Business name', settings.get('business_name') or '—', settings.get('business_name')),
+  ('Theme', current_theme|replace('_',' ')|title, settings.get('site_theme')),
+  ('Site URL', settings.get('site_base_url') or '—', settings.get('site_base_url')),
+  ('Logo', 'Uploaded' if settings.get('logo_path') else 'Default text logo', settings.get('logo_path')),
+  ('Hero headline', (settings.get('hero_headline') or '—')[:50], settings.get('hero_headline')),
+]) }}
+
+
+
+<div class="card">
+
+  <h2>Site Theme</h2>
+
+  <p class="section-hint">Pick a preset look for your public site. Choose Custom to fine-tune colors manually.</p>
+
+  <form method="POST" enctype="multipart/form-data" id="brandingForm">
+
+    <input type="hidden" name="site_theme" id="siteThemeInput" value="{{ current_theme }}">
+
+
+
+    <div class="theme-grid">
+
+      {% for theme_id, theme in themes.items() %}
+
+      <button type="button"
+
+        class="theme-card {% if current_theme == theme_id %}selected{% endif %}"
+
+        data-theme-id="{{ theme_id }}"
+
+        data-colors='{{ theme.colors|tojson }}'
+
+        data-fonts='{{ theme.fonts|tojson }}'>
+
+        <div class="theme-swatch">
+
+          {% for color in theme.swatch %}
+
+          <span style="background:{{ color }}"></span>
+
+          {% endfor %}
+
+        </div>
+
+        <strong>{{ theme.name }}</strong>
+
+        <span>{{ theme.description }}</span>
+
+      </button>
+
+      {% endfor %}
+
+      <button type="button"
+
+        class="theme-card theme-card-custom {% if current_theme == 'custom' %}selected{% endif %}"
+
+        data-theme-id="custom">
+
+        <div class="theme-swatch theme-swatch-custom">
+
+          <span></span><span></span><span></span>
+
+        </div>
+
+        <strong>Custom</strong>
+
+        <span>Use your own colors below</span>
+
+      </button>
+
+    </div>
+
+
+
+    <div class="card-inner" id="customColorsSection" {% if current_theme != 'custom' %}style="display:none"{% endif %}>
+
+      <h3>Custom Colors & Fonts</h3>
+
+      <div class="form-grid">
+
+        <div class="form-group"><label>Primary Color</label><input name="color_primary" id="colorPrimary" type="color" value="{{ settings.get('color_primary','#d4849a') }}"></div>
+
+        <div class="form-group"><label>Secondary Color</label><input name="color_secondary" id="colorSecondary" type="color" value="{{ settings.get('color_secondary','#fff9fc') }}"></div>
+
+        <div class="form-group"><label>Accent Color</label><input name="color_accent" id="colorAccent" type="color" value="{{ settings.get('color_accent','#e8a0bf') }}"></div>
+
+        <div class="form-group"><label>Text Color</label><input name="color_text" id="colorText" type="color" value="{{ settings.get('color_text','#2d2a2e') }}"></div>
+
+        <div class="form-group"><label>Muted Text Color</label><input name="color_muted" id="colorMuted" type="color" value="{{ settings.get('color_muted','#7a6f74') }}"></div>
+
+        <div class="form-group"><label>Heading Font</label><input name="font_heading" id="fontHeading" value="{{ settings.get('font_heading','') }}"></div>
+
+        <div class="form-group"><label>Body Font</label><input name="font_body" id="fontBody" value="{{ settings.get('font_body','') }}"></div>
+
+      </div>
+
+    </div>
+
+
+
+    <h2 style="margin-top:2rem">Business Info</h2>
+
+    <div class="form-grid">
+
+      <div class="form-group"><label>Business Name</label><input name="business_name" value="{{ settings.get('business_name','') }}"></div>
+
+      <div class="form-group"><label>Tagline</label><input name="tagline" value="{{ settings.get('tagline','') }}"></div>
+
+      <div class="form-group"><label>Logo</label><input name="logo" type="file" accept="image/*"></div>
+
+      <div class="form-group"><label>Footer Tagline</label><input name="footer_tagline" value="{{ settings.get('footer_tagline','') }}"></div>
+
+    </div>
+
+    <div class="form-group"><label>Hero Eyebrow</label><input name="hero_eyebrow" value="{{ settings.get('hero_eyebrow','') }}"></div>
+
+    <div class="form-group"><label>Hero Headline</label><input name="hero_headline" value="{{ settings.get('hero_headline','') }}"></div>
+
+    <div class="form-group"><label>Hero Subtext</label><textarea name="hero_subtext" rows="2">{{ settings.get('hero_subtext','') }}</textarea></div>
+
+    <div class="form-group"><label>About Title</label><input name="about_title" value="{{ settings.get('about_title','') }}"></div>
+
+    <div class="form-group"><label>About Text</label><textarea name="about_text" rows="3">{{ settings.get('about_text','') }}</textarea></div>
+
+    <div class="form-group"><label>About Text 2</label><textarea name="about_text_2" rows="3">{{ settings.get('about_text_2','') }}</textarea></div>
+
+    <div class="form-group"><label>Footer About</label><textarea name="footer_about" rows="2">{{ settings.get('footer_about','') }}</textarea></div>
+
+    <div class="form-group"><label>Hero Image URL</label><input name="hero_image" value="{{ settings.get('hero_image','') }}" placeholder="https://... or /static/img/stock/hero.jpg"></div>
+
+    <div class="form-group"><label>About Image URL</label><input name="about_image" value="{{ settings.get('about_image','') }}"></div>
+    <div class="form-group"><label>Public Site URL</label><input name="site_base_url" value="{{ settings.get('site_base_url','') }}" placeholder="https://yourdomain.com — used in emails &amp; track links"></div>
+    <button type="submit" class="btn">Save Branding</button>
+
+  </form>
+
+</div>
+
+{% endblock %}
+
+
+
+{% block scripts %}
+
+<script>
+
+const themeInput = document.getElementById('siteThemeInput');
+
+const customSection = document.getElementById('customColorsSection');
+
+const colorMap = {
+
+  color_primary: 'colorPrimary',
+
+  color_secondary: 'colorSecondary',
+
+  color_accent: 'colorAccent',
+
+  color_text: 'colorText',
+
+  color_muted: 'colorMuted',
+
+  font_heading: 'fontHeading',
+
+  font_body: 'fontBody',
+
+};
+
+
+
+document.querySelectorAll('.theme-card').forEach(card => {
+
+  card.addEventListener('click', () => {
+
+    document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+
+    card.classList.add('selected');
+
+    const id = card.dataset.themeId;
+
+    themeInput.value = id;
+
+    if (id === 'custom') {
+
+      customSection.style.display = '';
+
+      return;
+
+    }
+
+    customSection.style.display = 'none';
+
+    const colors = JSON.parse(card.dataset.colors || '{}');
+
+    const fonts = JSON.parse(card.dataset.fonts || '{}');
+
+    Object.entries({...colors, ...fonts}).forEach(([key, val]) => {
+
+      const el = document.getElementById(colorMap[key]);
+
+      if (el) el.value = val;
+
+    });
+
+  });
+
+});
+
+</script>
+
+{% endblock %}
+

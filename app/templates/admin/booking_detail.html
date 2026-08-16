@@ -1,0 +1,137 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+
+{% block title %}Booking {{ booking.booking_id }}{% endblock %}
+
+{% block content %}
+
+<div class="admin-header"><h1>Booking {{ booking.booking_id }}</h1></div>
+
+{{ saved_panel('Booking saved', [
+  ('Status', booking.status|replace('_',' ')|title, true),
+  ('Customer', booking.name ~ ' · ' ~ booking.email, true),
+  ('Preferred time', booking.preferred_datetime, true),
+  ('Messages', messages|length ~ ' in chat', messages|length >= 0),
+]) }}
+
+<div class="grid-2" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+
+  <div class="card">
+    <h2>Details</h2>
+    <p><strong>Name:</strong> {{ booking.name }}</p>
+    <p><strong>Email:</strong> {{ booking.email }}</p>
+    <p><strong>Phone:</strong> {{ booking.phone or '—' }}</p>
+    <p><strong>Zip:</strong> {{ booking.zip_code }}</p>
+    {% if booking.service_name %}<p><strong>Treatment:</strong> {{ booking.service_name }}</p>{% endif %}
+    {% if booking.pricing_label %}<p><strong>Session:</strong> {{ booking.pricing_label }}{% if booking.pricing_price %} — ${{ booking.pricing_price|int }}{% endif %}</p>{% endif %}
+    {% if booking.masseuse_name %}<p><strong>Therapist:</strong> {{ booking.masseuse_name }}</p>{% endif %}
+    <p><strong>Preferred:</strong> {{ booking.preferred_datetime }}</p>
+    <p><strong>Message:</strong> {{ booking.message or '—' }}</p>
+    <p><strong>Status:</strong> <span class="status-badge status-{{ booking.status }}">{{ booking.status|replace('_',' ')|title }}</span></p>
+
+    <h3 style="margin-top:1.5rem">Device identity</h3>
+    <p><strong>IP:</strong> {{ booking.client_ip or '—' }}</p>
+    <p><strong>Device ID:</strong> <code style="font-size:0.85rem">{{ booking.device_id or '—' }}</code></p>
+    <p><strong>User agent:</strong> <span style="font-size:0.85rem;color:var(--muted)">{{ booking.user_agent or '—' }}</span></p>
+    {% if booking.device_fingerprint %}
+    <p><strong>Fingerprint:</strong> <span style="font-size:0.8rem;color:var(--muted);word-break:break-all">{{ booking.device_fingerprint[:120] }}{% if booking.device_fingerprint|length > 120 %}…{% endif %}</span></p>
+    {% endif %}
+
+    <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:1rem">
+      <form method="POST" onsubmit="return confirm('Block this device and IP from visiting the site?');">
+        <input type="hidden" name="action" value="block_device">
+        <input type="hidden" name="block_reason" value="Blocked from booking {{ booking.booking_id }}">
+        <button type="submit" class="btn btn-sm btn-danger" {% if not booking.device_id and not booking.client_ip %}disabled{% endif %}>Block device</button>
+      </form>
+      {% if booking.status != 'suspended' %}
+      <form method="POST" onsubmit="return confirm('Suspend this booking? The customer will not be able to track it again.');">
+        <input type="hidden" name="action" value="suspend_booking">
+        <input type="hidden" name="suspend_note" value="Suspended by admin">
+        <button type="submit" class="btn btn-sm btn-outline">Suspend booking</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Update Status</h2>
+    <form method="POST">
+      <input type="hidden" name="action" value="status">
+      <div class="form-group">
+        <label>Status</label>
+        <select name="status">
+          {% for s in ['pending','payment_pending','payment_submitted','confirmed','completed','cancelled','no_show','suspended'] %}
+          <option value="{{ s }}" {% if booking.status==s %}selected{% endif %}>{{ s|replace('_',' ')|title }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group"><label>Note</label><input name="note" placeholder="Optional note for customer"></div>
+      <button type="submit" class="btn">Update Status</button>
+    </form>
+
+    <h3 style="margin-top:1.5rem">Request payment</h3>
+    <form method="POST">
+      <input type="hidden" name="action" value="request_payment">
+      <div class="form-group"><label>Amount (optional)</label><input name="payment_amount" type="number" step="0.01" placeholder="{{ booking.pricing_price|int if booking.pricing_price else '' }}"></div>
+      <div class="form-group"><label>Message to customer</label><input name="payment_note" placeholder="e.g. Deposit due to confirm your session"></div>
+      <button type="submit" class="btn btn-outline">Send Pay Now to chat</button>
+    </form>
+
+    <h3 style="margin-top:1.5rem">History</h3>
+    <ul>{% for h in history %}<li>{{ h.created_at[:16] }} — <strong>{{ h.status|replace('_',' ')|title }}</strong> {% if h.note %}{{ h.note }}{% endif %}</li>{% endfor %}</ul>
+  </div>
+
+</div>
+
+{% if pending_payments %}
+<div class="card" style="margin-top:1.5rem">
+  <h2>Pending payment proofs</h2>
+  {% for p in pending_payments %}
+  <div style="border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1rem">
+    <p><strong>{{ p.method_name }}</strong> · ${{ p.amount|int }} · {{ p.created_at[:16] }}</p>
+    {% if p.note %}<p class="text-muted">{{ p.note }}</p>{% endif %}
+    {% if p.proof_path %}<p><a href="/data/{{ p.proof_path }}" target="_blank" rel="noopener">View proof image</a></p>{% endif %}
+    <form method="POST" style="margin-top:0.75rem;display:flex;gap:0.5rem;flex-wrap:wrap;align-items:flex-end">
+      <input type="hidden" name="action" value="review_payment">
+      <input type="hidden" name="submission_id" value="{{ p.id }}">
+      <div class="form-group" style="flex:1;min-width:180px;margin:0">
+        <label>Review note</label>
+        <input name="review_note" placeholder="Optional message if rejecting">
+      </div>
+      <button type="submit" name="review_action" value="approve" class="btn btn-sm">Approve</button>
+      <button type="submit" name="review_action" value="reject" class="btn btn-sm btn-danger">Reject</button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="card" style="margin-top:1.5rem">
+  <h2>Session Chat</h2>
+  <div class="chat-thread" id="adminChatThread">
+    {% for m in messages %}
+    <div class="chat-bubble chat-{{ m.sender_type }}{% if m.message_type == 'payment_request' %} chat-payment-request{% endif %}">
+      <div class="chat-meta">{{ m.sender_name }} · {{ m.created_at[:16] }}</div>
+      {% if m.message_type == 'payment_request' %}
+      <div class="chat-pay-card">
+        <p><strong>Payment required</strong></p>
+        <p>{{ m.body }}</p>
+        <span class="chat-pay-badge">Pay Now</span>
+      </div>
+      {% elif m.message_type == 'payment_proof' and m.attachment_path %}
+      <div>{{ m.body }}</div>
+      <p style="margin-top:0.5rem"><a href="/data/{{ m.attachment_path }}" target="_blank" rel="noopener">View proof</a></p>
+      {% else %}
+      <div>{{ m.body }}</div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  <form method="POST" style="margin-top:1rem">
+    <input type="hidden" name="action" value="message">
+    <div class="form-group"><textarea name="message_body" rows="2" placeholder="Reply to customer..." required></textarea></div>
+    <button type="submit" class="btn">Send Message</button>
+  </form>
+</div>
+
+{% endblock %}

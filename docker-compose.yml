@@ -1,0 +1,39 @@
+name: serenity-wellness
+
+services:
+  app:
+    build: .
+    container_name: serenity-app
+    restart: unless-stopped
+    ports:
+      - "18871:18871"
+    volumes:
+      - serenity_data:/app/data
+    environment:
+      - PORT=18871
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - ADMIN_EMAIL=${ADMIN_EMAIL:-admin@serenity.local}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin123}
+      - DATA_DIR=/app/data
+
+  nginx:
+    image: nginx:alpine
+    container_name: serenity-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/serenity.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: serenity-tunnel
+    restart: unless-stopped
+    command: tunnel --url http://nginx:80
+    depends_on:
+      - nginx
+
+volumes:
+  serenity_data:

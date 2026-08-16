@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin{% endblock %} | Serenity</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body>
+  {% from "admin/_macros.html" import save_toast %}
+  <div class="admin-layout">
+    <aside class="admin-sidebar">
+      <div class="brand">
+        <h2>{{ site.business_name }}</h2>
+        <p>Admin Panel</p>
+      </div>
+      <nav class="admin-nav">
+        <a href="{{ url_for('admin.dashboard') }}" class="{% if request.endpoint=='admin.dashboard' %}active{% endif %}">Dashboard</a>
+        <a href="{{ url_for('admin.branding') }}" class="{% if request.endpoint=='admin.branding' %}active{% endif %}">Branding</a>
+        <a href="{{ url_for('admin.services') }}" class="{% if request.endpoint=='admin.services' %}active{% endif %}">Services</a>
+        <a href="{{ url_for('admin.pricing') }}" class="{% if request.endpoint=='admin.pricing' %}active{% endif %}">Pricing</a>
+        <a href="{{ url_for('admin.contacts') }}" class="{% if request.endpoint=='admin.contacts' %}active{% endif %}">Contact Channels</a>
+        <a href="{{ url_for('admin.payments') }}" class="{% if request.endpoint=='admin.payments' %}active{% endif %}">Payments</a>
+        <a href="{{ url_for('admin.bookings') }}" class="{% if request.endpoint=='admin.bookings' or request.endpoint=='admin.booking_detail' %}active{% endif %}">Bookings</a>
+        <a href="{{ url_for('admin.blocked_devices') }}" class="{% if request.endpoint=='admin.blocked_devices' %}active{% endif %}">Blocked Devices</a>
+        <a href="{{ url_for('admin.masseuses') }}" class="{% if request.endpoint=='admin.masseuses' %}active{% endif %}">Masseuses</a>
+        <a href="{{ url_for('admin.reviews') }}" class="{% if request.endpoint=='admin.reviews' %}active{% endif %}">Reviews</a>
+        <a href="{{ url_for('admin.gallery') }}" class="{% if request.endpoint=='admin.gallery' %}active{% endif %}">Gallery</a>
+        <a href="{{ url_for('admin.email_settings') }}" class="{% if request.endpoint=='admin.email_settings' %}active{% endif %}">Email Presets</a>
+        <a href="{{ url_for('admin.telegram_settings') }}" class="{% if request.endpoint=='admin.telegram_settings' %}active{% endif %}">Telegram</a>
+        <a href="{{ url_for('admin.ai') }}" class="{% if request.endpoint=='admin.ai' %}active{% endif %}">AI Settings</a>
+        <a href="{{ url_for('admin.account') }}" class="{% if request.endpoint=='admin.account' %}active{% endif %}">Account</a>
+        <a href="{{ url_for('public.home') }}" target="_blank">View Site ↗</a>
+        <a href="{{ url_for('admin.logout') }}">Logout</a>
+      </nav>
+    </aside>
+    <main class="admin-main">
+      {{ save_toast() }}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <script>
+  document.querySelectorAll('.save-toast-close').forEach(btn => {
+    btn.addEventListener('click', () => btn.closest('.save-toast')?.remove());
+  });
+  setTimeout(() => {
+    document.querySelectorAll('.save-toast').forEach(el => {
+      el.classList.add('leaving');
+      setTimeout(() => el.remove(), 300);
+    });
+  }, 6000);
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

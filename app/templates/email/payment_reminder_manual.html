@@ -1,0 +1,14 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_heading, info_card, pay_banner %}
+{% set email_subtitle = "Payment reminder" %}
+{% block email_body %}
+{{ email_heading("Complete your payment", "Hi " ~ booking.name ~ ", this is a friendly reminder to complete payment for booking " ~ booking.booking_id ~ ".") }}
+
+{% if amount_label %}
+{{ info_card([("Amount due", amount_label)]) }}
+{% endif %}
+
+<p style="margin:0 0 18px;color:{{ muted }};font-size:14px;font-family:Arial,Helvetica,sans-serif;">Choose Venmo, Zelle, Cash App, crypto, or another method on your session page.</p>
+
+{{ pay_banner(pay_url, "Payment due", "Tap below to choose your payment method and confirm your session.") }}
+{% endblock %}

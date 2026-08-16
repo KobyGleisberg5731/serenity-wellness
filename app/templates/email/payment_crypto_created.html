@@ -1,0 +1,17 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_button, email_heading, info_card %}
+{% set email_subtitle = "Crypto payment ready" %}
+{% block email_body %}
+{{ email_heading("Complete your crypto payment", "Hi " ~ booking.name ~ ", your crypto payment for booking " ~ booking.booking_id ~ " is ready. Send the exact amount below to complete payment.") }}
+
+{{ info_card([
+  ("Session amount", amount_label),
+  ("Send exactly", pay_amount ~ " " ~ pay_currency),
+  ("Wallet", pay_address),
+  ("Status", "Waiting for payment"),
+]) }}
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr><td align="center">{{ email_button(track_url, "View payment details", true) }}</td></tr>
+</table>
+{% endblock %}

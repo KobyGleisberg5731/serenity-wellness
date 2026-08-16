@@ -1,0 +1,31 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+{% block title %}Gallery{% endblock %}
+{% block content %}
+<div class="admin-header"><h1>Gallery</h1></div>
+
+{{ saved_panel('Gallery saved', [
+  ('Images', images|length ~ ' in database', images|length > 0),
+  ('Active', images|selectattr('active')|list|length ~ ' visible', images|length > 0),
+]) }}
+
+<div class="card">
+  <form method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="action" value="upload">
+    <div class="form-grid">
+      <div class="form-group"><label>Image</label><input name="image" type="file" accept="image/*" required></div>
+      <div class="form-group"><label>Alt Text</label><input name="alt_text"></div>
+    </div>
+    <button type="submit" class="btn">Upload</button>
+  </form>
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem">
+  {% for img in images %}
+  <div class="card" style="padding:0.5rem">
+    <img src="{{ img.filename|media_url }}" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:0.5rem">
+    <p style="font-size:0.8rem;margin:0.5rem 0">{{ img.alt_text }}</p>
+    <form method="POST"><input type="hidden" name="action" value="delete"><input type="hidden" name="id" value="{{ img.id }}"><button class="btn btn-sm btn-danger">Delete</button></form>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

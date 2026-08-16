@@ -1,0 +1,17 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_heading, info_card %}
+{% set email_subtitle = "New booking alert" %}
+{% block email_body %}
+{{ email_heading("New booking request") }}
+{{ info_card([
+  ("Booking ID", booking.booking_id),
+  ("Name", booking.name),
+  ("Email", booking.email),
+  ("Phone", booking.phone or "—"),
+  ("Treatment", booking.service_name or "—"),
+  ("Session", booking.pricing_label or "—"),
+  ("Therapist", booking.masseuse_name or "No preference"),
+  ("When", booking.preferred_datetime),
+  ("Message", booking.message or "—"),
+]) }}
+{% endblock %}

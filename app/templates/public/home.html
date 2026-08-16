@@ -1,0 +1,109 @@
+{% extends "public/base.html" %}
+{% block content %}
+<section class="hero hero--image hero--split" style="--hero-image: url('{{ site.hero_image }}');">
+  <div class="hero-bg" aria-hidden="true"></div>
+  <div class="hero-overlay" aria-hidden="true"></div>
+  <div class="hero-copy-blur" aria-hidden="true"></div>
+  <div class="hero-showcase" data-hero-carousel>
+    <div class="hero-showcase-frame">
+      <img class="hero-showcase-slide active" src="{{ site.hero_image }}" alt="">
+      {% for g in site.gallery[:6] %}
+      <img class="hero-showcase-slide" src="{{ g.filename|media_url }}" alt="{{ g.alt_text or '' }}">
+      {% endfor %}
+    </div>
+  </div>
+  <div class="container hero-content">
+    <div class="hero-grid">
+      <div class="hero-copy">
+        <div class="eyebrow">{{ site.settings.get('hero_eyebrow','') }}</div>
+        <h1>{{ site.settings.get('hero_headline','') }}</h1>
+        <p class="hero-lead">{{ site.settings.get('hero_subtext','') }}</p>
+        <div class="hero-actions">
+          <a href="#" class="btn" data-book-session>Book a Session</a>
+          <a href="{{ url_for('public.services') }}" class="btn btn-outline btn-on-hero">Explore Treatments</a>
+        </div>
+        <div class="badges">
+          <span class="badge">Private sessions</span>
+          <span class="badge">Soft luxury care</span>
+          <span class="badge">Calm atmosphere</span>
+          <span class="badge">Wellness focused</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container grid-2" style="align-items:center">
+    <div class="img-frame">
+      <img src="{{ site.about_image }}" alt="About {{ site.business_name }}">
+    </div>
+    <div>
+      <div class="eyebrow">About the experience</div>
+      <h2>{{ site.settings.get('about_title','') }}</h2>
+      <p class="text-muted">{{ site.settings.get('about_text','') }}</p>
+      <p class="text-muted">{{ site.settings.get('about_text_2','') }}</p>
+    </div>
+  </div>
+</section>
+
+{% if site.masseuses %}
+<section class="section section-alt">
+  <div class="container">
+    <div class="eyebrow">Our team</div>
+    <h2>Meet our wellness specialists</h2>
+    <div class="grid-3" style="margin-top:2.5rem">
+      {% for m in site.masseuses %}
+      <div class="card card-hover team-card">
+        <img class="team-avatar" src="{{ m.image_path|media_url }}" alt="{{ m.name }}">
+        <h3>{{ m.name }}</h3>
+        <p class="text-muted team-bio">{{ m.bio[:140] }}{% if m.bio|length > 140 %}...{% endif %}</p>
+        <a href="#" class="btn btn-sm btn-outline" style="margin-top:1rem" data-book-session data-masseuse-id="{{ m.id }}">Book with {{ m.name.split()[0] }}</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="section">
+  <div class="container">
+    <div class="eyebrow">Client love</div>
+    <h2>Words from those who've experienced the calm</h2>
+    <p class="text-muted">{{ site.avg_rating }} / 5 • {{ site.review_count }}+ reviews</p>
+    <div class="review-carousel card" id="reviewCarousel">
+      {% for r in site.reviews %}
+      <div class="review-slide {% if loop.first %}active{% endif %}">
+        <div class="stars">{% for i in range(r.rating) %}★{% endfor %}</div>
+        <p class="review-quote">"{{ r.body }}"</p>
+        <p class="text-muted">— {{ r.author_name }}</p>
+      </div>
+      {% endfor %}
+      <div class="review-nav">
+        <button type="button" class="btn btn-outline btn-sm" onclick="prevReview()" aria-label="Previous review">←</button>
+        <button type="button" class="btn btn-outline btn-sm" onclick="nextReview()" aria-label="Next review">→</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section-alt">
+  <div class="container">
+    <div class="eyebrow">Signature treatments</div>
+    <h2>Curated wellness rituals with a soft premium touch</h2>
+    <div class="grid-4" style="margin-top:2.5rem">
+      {% for svc in site.services[:4] %}
+      <div class="card card-hover service-card">
+        <div class="service-img">
+          <img src="{{ site.gallery[loop.index0 % site.gallery|length].filename|media_url if site.gallery else site.hero_image }}" alt="{{ svc.name }}">
+        </div>
+        <span class="badge">{{ svc.badge }}</span>
+        <h3>{{ svc.name }}</h3>
+        <p class="text-muted service-desc">{{ svc.description[:90] }}...</p>
+        <a href="{{ url_for('public.services') }}" class="text-link">Learn more →</a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "public/base.html" %}
+{% block body_class %}page-blocked{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container page-hero-inner" style="text-align:center;max-width:560px;">
+    <div class="eyebrow">Access restricted</div>
+    <h1>Unable to continue</h1>
+    <p class="page-lead">{{ message or "Access from this device has been restricted." }}</p>
+    <p style="color:var(--muted);margin-top:1rem;">If you believe this is a mistake, please contact us directly.</p>
+    <a href="{{ url_for('public.contact') }}" class="btn" style="margin-top:1.5rem;">Contact us</a>
+  </div>
+</section>
+{% endblock %}

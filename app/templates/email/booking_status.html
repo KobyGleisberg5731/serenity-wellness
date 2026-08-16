@@ -1,0 +1,27 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_button, email_heading, info_card, message_card, pay_banner %}
+{% set email_subtitle = "Booking update" %}
+{% block email_body %}
+{{ email_heading("Your session was updated", "Hi " ~ booking.name ~ ", your booking at " ~ business_name ~ " is now " ~ status_label ~ ".") }}
+
+{{ info_card([
+  ("Booking ID", booking.booking_id),
+  ("Preferred time", booking.preferred_datetime),
+  ("Status", status_label),
+]) }}
+
+{% if status_note %}
+{{ message_card(status_note) }}
+{% endif %}
+
+{% if show_pay_now %}
+{{ pay_banner(pay_url) }}
+{% endif %}
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:{% if show_pay_now %}16{% else %}28{% endif %}px;">
+  <tr><td align="center">
+    {{ email_button(track_url, "View session & chat", not show_pay_now) }}
+    {% if show_pay_now %}{{ email_button(pay_url, "Pay now", true) }}{% endif %}
+  </td></tr>
+</table>
+{% endblock %}

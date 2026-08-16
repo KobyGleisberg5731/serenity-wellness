@@ -1,0 +1,296 @@
+{% extends "public/base.html" %}
+{% block body_class %}page-track{% endblock %}
+
+{% block head %}
+<style>
+  .payment-modal-title-row {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding-right: 6.5rem;
+    box-sizing: border-box;
+  }
+  .payment-modal-title-row h2 {
+    margin: 0 !important;
+    font-size: 1.25rem !important;
+    line-height: 1.2 !important;
+  }
+  .payment-modal-title-row .payment-modal-amount {
+    position: absolute;
+    top: 50%;
+    right: 3.75rem;
+    transform: translateY(-50%);
+    white-space: nowrap;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="page-hero track-hero">
+  <div class="container page-hero-inner">
+    <div class="eyebrow">Session tracker</div>
+    <h1>Follow your booking</h1>
+    <p class="page-lead">View status updates and message our team in one place.</p>
+  </div>
+</section>
+
+<section class="section section-compact track-section">
+  <div class="container track-container">
+    {% if not booking %}
+    <div class="track-lookup-wrap">
+      {% if access_error == 'suspended' %}
+      <div class="card track-lookup" style="border-color:#fecaca;background:#fff5f5;">
+        <h3 style="margin-top:0;color:#991b1b">Session suspended</h3>
+        <p>This booking has been suspended and is no longer available to track. If you have questions, please contact us.</p>
+        <a href="{{ url_for('public.contact') }}" class="btn btn-outline" style="margin-top:1rem">Contact us</a>
+      </div>
+      {% else %}
+      <div class="card track-lookup">
+        <form method="POST">
+          <div class="form-group"><label>Booking ID</label><input name="booking_id" value="{{ request.args.get('booking_id','') }}" placeholder="BK-1234" required></div>
+          <div class="form-group"><label>Email</label><input name="email" type="email" value="{{ request.args.get('email','') }}" placeholder="you@email.com" required></div>
+          <button type="submit" class="btn btn-block">View session</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+
+    <div class="track-dashboard">
+      <div class="track-main">
+        <article class="card track-card booking-summary">
+          <div class="booking-summary-top">
+            <div>
+              <p class="track-label">Booking ID</p>
+              <p class="track-booking-id">{{ booking.booking_id }}</p>
+            </div>
+            <span class="status-badge status-{{ booking.status }}">{{ booking.status|replace('_',' ')|title }}</span>
+          </div>
+          <div class="booking-details-grid">
+            <div class="track-detail-item"><span>Name</span><strong>{{ booking.name }}</strong></div>
+            <div class="track-detail-item"><span>Preferred time</span><strong>{{ booking.preferred_datetime }}</strong></div>
+            {% if booking.service_name %}<div class="track-detail-item"><span>Treatment</span><strong>{{ booking.service_name }}</strong></div>{% endif %}
+            {% if booking.pricing_label %}<div class="track-detail-item"><span>Session</span><strong>{{ booking.pricing_label }}{% if booking.pricing_price %} — ${{ booking.pricing_price|int }}{% endif %}</strong></div>{% endif %}
+            {% if booking.masseuse_name %}<div class="track-detail-item"><span>Therapist</span><strong>{{ booking.masseuse_name }}</strong></div>{% endif %}
+          </div>
+        </article>
+
+        {% if booking.status == 'payment_pending' or (payment_info and payment_info.active_crypto_payment) or (payment_info and payment_info.has_open_payments) %}
+        <div class="pay-due-banner track-card" id="pay">
+          <div class="pay-due-banner-head">
+            <p class="pay-eyebrow" id="payBannerEyebrow">{% if payment_info and payment_info.payment_requests and payment_info.payment_requests|length > 1 %}Payments due{% elif payment_info and payment_info.active_crypto_payment %}Payment in progress{% else %}Payment required{% endif %}</p>
+            <p class="pay-due-text" id="payBannerText">{% if payment_info and payment_info.payment_requests and payment_info.payment_requests|length > 1 %}Complete each payment below to confirm your session.{% elif payment_info and payment_info.active_crypto_payment %}Complete your crypto payment to confirm your session.{% else %}Complete payment to confirm your session.{% endif %}</p>
+          </div>
+          <div class="pay-pending-list" id="payPendingList">
+            {% if payment_info and payment_info.payment_requests %}
+              {% for pr in payment_info.payment_requests %}
+              {% set ap = pr.active_payment %}
+              {% set effective_status = 'pending' if ap and pr.pay_status == 'open' else pr.pay_status %}
+              <div class="pay-pending-item" data-message-id="{{ pr.message_id }}">
+                <div class="pay-pending-copy">
+                  <p class="pay-pending-eyebrow">{% if effective_status == 'pending' %}{% if ap and ap.status in ['confirming', 'partially_paid', 'sending'] %}Payment detected{% else %}Payment in progress{% endif %}{% else %}Payment required{% endif %}</p>
+                  <p class="pay-pending-desc">{{ pr.body }}</p>
+                  {% if pr.amount_label %}<p class="pay-pending-amount">{{ pr.amount_label }}</p>{% endif %}
+                  {% if ap and effective_status == 'pending' %}
+                  <p class="pay-pending-status text-muted">Status: {{ (ap.status or 'waiting')|replace('_', ' ') }}</p>
+                  {% endif %}
+                </div>
+                <button type="button" class="btn btn-sm pay-pending-btn" data-scroll-pay
+                  data-pay-status="{{ effective_status }}"
+                  data-pay-amount="{{ pr.amount if pr.amount is not none else '' }}"
+                  data-pay-label="{{ pr.amount_label or '' }}"
+                  data-message-id="{{ pr.message_id }}"
+                  data-payment-id="{{ (ap.id or ap.external_id) if ap else '' }}">
+                  {% if effective_status == 'pending' %}{% if ap and ap.status in ['confirming', 'partially_paid', 'sending'] %}View payment status{% else %}Complete payment{% endif %}{% else %}Pay now{% endif %}
+                </button>
+              </div>
+              {% endfor %}
+            {% else %}
+              <div class="pay-pending-item">
+                <div class="pay-pending-copy">
+                  <p class="pay-pending-eyebrow">{% if payment_info and payment_info.active_crypto_payment %}Payment in progress{% else %}Payment required{% endif %}</p>
+                  <p class="pay-pending-desc">Complete payment to confirm your session.</p>
+                  {% if payment_info and payment_info.amount_label %}<p class="pay-pending-amount">{{ payment_info.amount_label }}</p>{% endif %}
+                </div>
+                <button type="button" class="btn btn-sm pay-pending-btn" data-scroll-pay
+                  data-pay-amount="{{ payment_info.amount_due if payment_info else 0 }}"
+                  data-pay-label="{{ payment_info.amount_label if payment_info else '' }}"
+                  data-pay-status="{% if payment_info and payment_info.active_crypto_payment %}pending{% else %}open{% endif %}">
+                  {% if payment_info and payment_info.active_crypto_payment %}Continue payment{% else %}Pay now{% endif %}
+                </button>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        {% elif booking.status == 'payment_submitted' %}
+        <div class="card track-card pay-submitted-card">
+          <p class="pay-eyebrow">Payment received</p>
+          <h2 class="pay-title">Thank you — we're reviewing your payment</h2>
+          <p class="pay-lead">We'll confirm your session shortly. You can still message us in the chat.</p>
+        </div>
+        {% endif %}
+
+        <article class="card track-card track-timeline-card">
+          <h2 class="track-card-title">Status timeline</h2>
+          <ul class="status-timeline">
+            {% for h in history %}
+            <li>
+              <span class="status-dot status-{{ h.status }}"></span>
+              <div>
+                <strong>{{ h.status|replace('_',' ')|title }}</strong>
+                <span class="text-muted"> · {{ h.created_at[:16] }}</span>
+                {% if h.note %}<p class="text-muted timeline-note">{{ h.note }}</p>{% endif %}
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        </article>
+      </div>
+
+      <aside class="track-sidebar">
+        <div class="card chat-panel track-chat-card" id="sessionChat" data-booking-id="{{ booking.booking_id }}" data-email="{{ booking.email }}">
+          <div class="chat-header">
+            <h2>Message our team</h2>
+            <p class="text-muted">Questions, schedule changes, or session notes — we're here.</p>
+          </div>
+          <div class="chat-thread" id="chatThread">
+            {% for m in messages %}
+            {% if m.message_type != 'payment_request' or (m.meta and m.meta.get('pay_status', 'open') != 'confirmed') %}
+            <div class="chat-bubble chat-{{ m.sender_type }}{% if m.message_type == 'payment_request' %} chat-payment-request{% endif %}" data-message-type="{{ m.message_type or 'text' }}" data-message-id="{{ m.id }}">
+              {% if m.sender_type != 'system' or m.message_type != 'payment_request' %}
+              {% if m.sender_type != 'system' %}
+              <div class="chat-meta">{{ m.sender_name }} · {{ m.created_at[11:16] }}</div>
+              {% endif %}
+              {% endif %}
+              {% if m.message_type == 'payment_request' %}
+              {% set pay_status = m.meta.pay_status if m.meta else 'open' %}
+              <div class="chat-pay-card{% if pay_status == 'submitted' %} chat-pay-card--submitted{% elif pay_status == 'pending' %} chat-pay-card--pending{% endif %}" data-pay-card>
+                <p class="chat-pay-eyebrow">{% if pay_status == 'submitted' %}Payment submitted{% elif pay_status == 'pending' %}Payment in progress{% else %}Payment required{% endif %}</p>
+                <p class="chat-pay-body">{{ m.body }}</p>
+                {% if m.meta and m.meta.amount_label %}<p class="chat-pay-amount">{{ m.meta.amount_label }}</p>{% endif %}
+                {% if pay_status == 'submitted' %}
+                <p class="chat-pay-pending text-muted">Awaiting confirmation from our team.</p>
+                {% elif pay_status == 'pending' %}
+                <p class="chat-pay-pending text-muted">Send your crypto payment to complete checkout.</p>
+                <button type="button" class="btn btn-sm chat-pay-btn" data-scroll-pay data-pay-status="pending"
+                  data-pay-amount="{{ m.meta.amount if m.meta and m.meta.amount is not none else '' }}"
+                  data-pay-label="{{ m.meta.amount_label if m.meta else '' }}"
+                  data-message-id="{{ m.id }}">Complete payment</button>
+                {% else %}
+                <button type="button" class="btn btn-sm chat-pay-btn" data-scroll-pay data-pay-status="open"
+                  data-pay-amount="{{ m.meta.amount if m.meta and m.meta.amount is not none else '' }}"
+                  data-pay-label="{{ m.meta.amount_label if m.meta else '' }}"
+                  data-message-id="{{ m.id }}">Pay now</button>
+                {% endif %}
+              </div>
+              {% elif m.message_type == 'payment_proof' and m.attachment_path %}
+              <div class="chat-body">{{ m.body }}</div>
+              <a class="chat-proof-link" href="/data/{{ m.attachment_path }}" target="_blank" rel="noopener">View payment proof</a>
+              {% else %}
+              <div class="chat-body">{{ m.body }}</div>
+              {% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+          </div>
+          <form id="chatForm" class="chat-form">
+            <textarea id="chatInput" rows="1" placeholder="Write your message…" required></textarea>
+            <button type="submit" class="btn btn-sm chat-send-btn" aria-label="Send message">
+              <span class="chat-send-icon">↑</span>
+            </button>
+          </form>
+        </div>
+      </aside>
+    </div>
+
+    <button type="button" class="track-help-btn" id="trackHelpBtn" aria-label="Need help? Message our team">
+      <span>💬</span> Need help?
+    </button>
+    <div class="track-toast-stack" id="trackToastStack" aria-live="polite"></div>
+    {% endif %}
+  </div>
+</section>
+
+{% if booking and payment_info and payment_info.has_open_payments %}
+<div class="payment-modal" id="paymentModal" style="display:none" aria-hidden="true">
+  <div class="payment-card" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
+    <button type="button" class="payment-close" id="paymentModalClose" aria-label="Close">✕</button>
+    <div class="payment-modal-header">
+      <p class="pay-eyebrow payment-modal-eyebrow">Secure checkout</p>
+      <div class="payment-modal-title-row">
+        <h2 id="paymentModalTitle" class="payment-modal-title">Choose how to pay</h2>
+        <span class="payment-modal-amount" id="paymentModalAmount">{{ payment_info.amount_label if payment_info else '' }}</span>
+      </div>
+    </div>
+    <div class="payment-modal-body" id="paymentModalBody">
+      <div class="pay-step" id="payStepMethods">
+        <p class="pay-step-lead">Select a payment method to continue.</p>
+        <div class="pay-methods" id="payMethods">
+          {% if payment_info and payment_info.crypto_enabled %}
+          <button type="button" class="pay-method-card pay-method-crypto" data-pay-action="crypto">
+            <span class="pay-method-icon">₿</span>
+            <span>
+              <strong>Pay with crypto</strong>
+              <small>BTC, ETH, USDT and more</small>
+            </span>
+          </button>
+          {% endif %}
+          {% for method in (payment_info.methods if payment_info else []) %}
+          <button type="button" class="pay-method-card" data-method-id="{{ method.id }}" data-method-name="{{ method.name }}">
+            <span class="pay-method-icon">{{ method.name[:1] }}</span>
+            <span>
+              <strong>{{ method.name }}</strong>
+              <small>{{ method.wallet_or_handle or method.method_type|title }}</small>
+            </span>
+          </button>
+          {% endfor %}
+          {% if not (payment_info and (payment_info.crypto_enabled or payment_info.methods)) %}
+          <div class="pay-methods-empty">
+            <p><strong>No payment methods available yet</strong></p>
+            <p class="text-muted">The business hasn't added payment options in Admin → Payment Methods. You can still message our team in the chat while you wait.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+      <div class="pay-step" id="payStepManual" hidden>
+        <button type="button" class="btn btn-sm btn-outline pay-step-back" id="payManualBack">← Change payment method</button>
+        <div class="pay-detail-body" id="payDetailBody"></div>
+        <div class="form-group" style="margin-top:1rem">
+          <label>Note (optional)</label>
+          <textarea id="payNote" rows="2" placeholder="Transaction ID, sender name, or other details"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Payment proof <span class="required-mark">*</span></label>
+          <input type="file" id="payProof" accept="image/*,.pdf" required>
+          <p class="text-muted pay-proof-hint">Upload a screenshot or receipt showing your payment.</p>
+        </div>
+        <button type="button" class="btn btn-block" id="paySubmittedBtn">I've sent payment</button>
+      </div>
+      <div class="pay-step" id="payStepCrypto" hidden>
+        <div class="pay-crypto-detail" id="payCryptoDetail"></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.__bookingChat = {
+  bookingId: {{ booking.booking_id|tojson if booking else 'null' }},
+  email: {{ booking.email|tojson if booking else 'null' }},
+  lastMessageId: {{ (messages[-1].id if messages else 0)|tojson if booking else '0' }},
+  status: {{ booking.status|tojson if booking else 'null' }},
+  paymentMethods: {{ (payment_info.methods if payment_info else [])|tojson if booking else '[]' }},
+  cryptoEnabled: {{ (payment_info.crypto_enabled if payment_info else false)|tojson if booking else 'false' }},
+  amountDue: {{ (payment_info.amount_due if payment_info else 0)|tojson if booking else '0' }},
+  amountLabel: {{ (payment_info.amount_label if payment_info else '')|tojson if booking else '""' }},
+  feePercent: {{ (payment_info.fee_percent if payment_info else 0)|tojson if booking else '0' }},
+  totalWithFee: {{ (payment_info.total_with_fee if payment_info else 0)|tojson if booking else '0' }},
+  hasOpenPayments: {{ (payment_info.has_open_payments if payment_info else false)|tojson if booking else 'false' }},
+  activeCryptoPayment: {{ (payment_info.active_crypto_payment if payment_info else none)|tojson if booking else 'null' }},
+  paymentRequests: {{ (payment_info.payment_requests if payment_info else [])|tojson if booking else '[]' }},
+};
+</script>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "admin/base.html" %}
+{% from "admin/_macros.html" import saved_panel %}
+{% block title %}Services{% endblock %}
+{% block content %}
+<div class="admin-header"><h1>Services</h1></div>
+
+{{ saved_panel('Services saved', [
+  ('Total services', services|length ~ ' in database', services|length > 0),
+  ('Active', services|selectattr('active')|list|length ~ ' active', services|length > 0),
+]) }}
+
+<div class="card">
+  <h2>Add Service</h2>
+  <form method="POST">
+    <input type="hidden" name="action" value="create">
+    <div class="form-grid">
+      <div class="form-group"><label>Name</label><input name="name" required></div>
+      <div class="form-group"><label>Badge</label><input name="badge" placeholder="Signature"></div>
+      <div class="form-group"><label>Min Duration</label><input name="duration_min" type="number" value="60"></div>
+      <div class="form-group"><label>Max Duration</label><input name="duration_max" type="number" value="90"></div>
+    </div>
+    <div class="form-group"><label>Description</label><textarea name="description" rows="2" required></textarea></div>
+    <div class="form-group"><label>Benefits (one per line)</label><textarea name="benefits" rows="3"></textarea></div>
+    <button type="submit" class="btn">Add Service</button>
+  </form>
+</div>
+{% for svc in services %}
+<div class="card">
+  <form method="POST">
+    <input type="hidden" name="action" value="update">
+    <input type="hidden" name="id" value="{{ svc.id }}">
+    <div class="form-grid">
+      <div class="form-group"><label>Name</label><input name="name" value="{{ svc.name }}"></div>
+      <div class="form-group"><label>Badge</label><input name="badge" value="{{ svc.badge }}"></div>
+      <div class="form-group"><label>Min</label><input name="duration_min" type="number" value="{{ svc.duration_min }}"></div>
+      <div class="form-group"><label>Max</label><input name="duration_max" type="number" value="{{ svc.duration_max }}"></div>
+    </div>
+    <div class="form-group"><label>Description</label><textarea name="description" rows="2">{{ svc.description }}</textarea></div>
+    <div class="form-group"><label>Benefits</label><textarea name="benefits" rows="3">{% for b in svc.benefits %}{{ b }}
+{% endfor %}</textarea></div>
+    <label><input type="checkbox" name="active" {% if svc.active %}checked{% endif %}> Active</label>
+    <button type="submit" class="btn btn-sm">Save</button>
+    <button type="submit" name="action" value="delete" class="btn btn-sm btn-danger" onclick="this.form.action.value='delete'">Delete</button>
+  </form>
+</div>
+{% endfor %}
+{% endblock %}

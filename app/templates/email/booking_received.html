@@ -1,0 +1,21 @@
+{% extends "email/base.html" %}
+{% from "email/_macros.html" import email_button, email_heading, info_card %}
+{% set email_subtitle = "Booking confirmation" %}
+{% block email_body %}
+{{ email_heading("Thank you, " ~ booking.name ~ "!", "Your session request has been received. We'll confirm your appointment shortly.") }}
+
+{{ info_card([
+  ("Booking ID", booking.booking_id),
+  ("Treatment", booking.service_name),
+  ("Session", (booking.pricing_label or "") ~ (" — $" ~ booking.pricing_price|int if booking.pricing_price else "")),
+  ("Preferred time", booking.preferred_datetime),
+  ("Status", "Pending confirmation"),
+]) }}
+
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
+  <tr><td align="center">{{ email_button(track_url, "Track your session", true) }}</td></tr>
+</table>
+<p style="margin:18px 0 0;text-align:center;color:{{ muted }};font-size:13px;line-height:1.6;font-family:Arial,Helvetica,sans-serif;">
+  Save your booking ID and email — you'll need both to track progress and chat with us.
+</p>
+{% endblock %}
