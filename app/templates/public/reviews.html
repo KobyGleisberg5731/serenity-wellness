@@ -31,8 +31,25 @@
           </select>
         </div>
         <button type="submit" class="btn">Submit review</button>
+        <p id="reviewStatus" class="form-footer" style="display:none;margin-top:1rem"></p>
       </form>
     </div>
   </div>
 </section>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('reviewForm')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const status = document.getElementById('reviewStatus');
+  const res = await fetch(form.action, { method: 'POST', body: new FormData(form) });
+  const data = await res.json().catch(() => ({}));
+  status.style.display = 'block';
+  status.textContent = res.ok
+    ? (data.message || 'Thank you! Your review was submitted for approval.')
+    : (data.error || 'Could not submit review. Please try again.');
+  if (res.ok) form.reset();
+});
+</script>
 {% endblock %}

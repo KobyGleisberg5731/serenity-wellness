@@ -34,6 +34,10 @@ def create_app():
     app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(api_bp, url_prefix="/api")
 
+    # Trust X-Forwarded-* from nginx / Cloudflare tunnel in production.
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+
     @app.route("/data/<path:filename>")
     def serve_data(filename):
         from flask import send_from_directory
