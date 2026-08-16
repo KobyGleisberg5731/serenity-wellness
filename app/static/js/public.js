@@ -128,57 +128,102 @@ function scheduleUtilityMarquee() {
 scheduleUtilityMarquee();
 window.addEventListener('resize', scheduleUtilityMarquee);
 
-function updateHeroMobileCopy(slide) {
-  const labelEl = document.querySelector('[data-hero-label]');
-  const captionEl = document.querySelector('[data-hero-caption]');
-  const ui = document.querySelector('.hero-mobile-ui');
+function heroBreakpoint() {
+  return window.matchMedia('(max-width: 768px)').matches ? 'mobile' : 'desktop';
+}
+
+function updateHeroMobileCopy(slide, animate = false) {
+  const carousel = document.querySelector('[data-hero-carousel]');
+  const labelEl = carousel?.querySelector('[data-hero-label]');
+  const captionEl = carousel?.querySelector('[data-hero-caption]');
+  const ui = carousel?.querySelector('.hero-mobile-ui');
   if (!slide || !labelEl) return;
 
   const label = slide.dataset.label || 'Unwind';
   const caption = slide.dataset.caption || '';
+  if (labelEl.textContent === label && captionEl?.textContent === caption) return;
+
   labelEl.textContent = label;
   if (captionEl) captionEl.textContent = caption;
 
-  if (ui) {
+  if (animate && ui) {
     ui.classList.remove('hero-mobile-ui--swap');
     void ui.offsetWidth;
     ui.classList.add('hero-mobile-ui--swap');
   }
 }
 
-function initHeroCarousel() {
+function initHeroBookRing() {
+  /* SVG stroke animation handles the book ring on mobile. */
+}
+
+const HERO_CAROUSEL_INTERVAL_MS = 5500;
+
+function initHeroCarousel(options = {}) {
   const carousel = document.querySelector('[data-hero-carousel]');
   if (!carousel) return;
+
+  const slides = [...carousel.querySelectorAll('.hero-showcase-slide')];
+  if (!slides.length) return;
+
+  const bp = heroBreakpoint();
+  const slideCount = slides.length;
+  if (!options.force && carousel._heroTimer && carousel._heroBp === bp && carousel._heroSlideCount === slideCount) {
+    return;
+  }
 
   if (carousel._heroTimer) {
     clearInterval(carousel._heroTimer);
     carousel._heroTimer = null;
   }
 
-  const slides = [...carousel.querySelectorAll('.hero-showcase-slide')];
-  if (!slides.length) return;
+  carousel._heroBp = bp;
+  carousel._heroSlideCount = slideCount;
 
-  let idx = slides.findIndex(s => s.classList.contains('active'));
+  let idx = typeof carousel._heroIdx === 'number'
+    ? carousel._heroIdx % slides.length
+    : slides.findIndex(s => s.classList.contains('active'));
   if (idx < 0) idx = 0;
 
-  const show = (next) => {
-    slides[idx].classList.remove('active');
-    idx = ((next % slides.length) + slides.length) % slides.length;
-    slides[idx].classList.add('active');
-    updateHeroMobileCopy(slides[idx]);
-  };
-
-  updateHeroMobileCopy(slides[idx]);
+  slides.forEach((slide, i) => slide.classList.toggle('active', i === idx));
+  carousel._heroIdx = idx;
+  updateHeroMobileCopy(slides[idx], false);
+  initHeroBookRing();
 
   if (slides.length < 2) return;
 
-  carousel._heroTimer = setInterval(() => show(idx + 1), 4500);
+  const show = (next) => {
+    const prev = idx;
+    idx = ((next % slides.length) + slides.length) % slides.length;
+    if (prev === idx) return;
+    slides[prev].classList.remove('active');
+    slides[idx].classList.add('active');
+    carousel._heroIdx = idx;
+    updateHeroMobileCopy(slides[idx], true);
+  };
+
+  carousel._heroTimer = setInterval(() => show(idx + 1), HERO_CAROUSEL_INTERVAL_MS);
 }
 
-requestAnimationFrame(() => initHeroCarousel());
+requestAnimationFrame(() => {
+  initHeroCarousel({ force: true });
+  initHeroBookRing();
+});
 if (!window._heroCarouselResizeBound) {
   window._heroCarouselResizeBound = true;
-  window.addEventListener('resize', () => initHeroCarousel());
+  let heroResizeTimer;
+  let lastHeroBp = heroBreakpoint();
+  window.addEventListener('resize', () => {
+    clearTimeout(heroResizeTimer);
+    heroResizeTimer = setTimeout(() => {
+      const bp = heroBreakpoint();
+      if (bp !== lastHeroBp) {
+        lastHeroBp = bp;
+        initHeroCarousel({ force: true });
+        initHeroBookRing();
+      }
+    }, 250);
+  });
 }
 
 function showReview(n) {

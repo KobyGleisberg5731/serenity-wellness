@@ -2,13 +2,13 @@
 {% block content %}
 {% set mobile_hero_labels = ['Breathe', 'Restore', 'Unwind', 'Renew', 'Glow', 'Calm', 'Bliss'] %}
 {% set mobile_hero_captions = [
-  (site.settings.get('hero_headline', 'A softer space to relax.')|truncate(52, True, '')),
-  'Soft luxury care awaits.',
-  'Private calm, just for you.',
-  'Exhale. Reset. Glow.',
-  'Your serene ritual.',
-  'Stillness starts here.',
-  'Gentle touch, deep rest.'
+  'Relax. Restore. Glow.',
+  'Soft luxury awaits.',
+  'Your private calm.',
+  'Exhale. Reset.',
+  'A serene ritual.',
+  'Find stillness.',
+  'Deep rest awaits.'
 ] %}
 <section class="hero hero--image hero--split" style="--hero-image: url('{{ site.hero_image }}');">
   <div class="hero-bg" aria-hidden="true"></div>
@@ -19,16 +19,36 @@
       <img class="hero-showcase-slide active" src="{{ site.hero_image }}" alt=""
         data-label="{{ mobile_hero_labels[0] }}"
         data-caption="{{ mobile_hero_captions[0] }}">
+      {% set ns = namespace(i=1) %}
       {% for g in site.gallery[:6] %}
+      {% if g.filename|media_url != site.hero_image %}
       <img class="hero-showcase-slide" src="{{ g.filename|media_url }}" alt="{{ g.alt_text or '' }}"
-        data-label="{{ mobile_hero_labels[(loop.index) % mobile_hero_labels|length] }}"
-        data-caption="{{ mobile_hero_captions[(loop.index) % mobile_hero_captions|length] }}">
+        data-label="{{ mobile_hero_labels[ns.i % mobile_hero_labels|length] }}"
+        data-caption="{{ mobile_hero_captions[ns.i % mobile_hero_captions|length] }}">
+      {% set ns.i = ns.i + 1 %}
+      {% endif %}
       {% endfor %}
     </div>
     <div class="hero-mobile-ui" aria-live="polite">
       <span class="hero-mobile-label" data-hero-label>{{ mobile_hero_labels[0] }}</span>
       <p class="hero-mobile-caption" data-hero-caption>{{ mobile_hero_captions[0] }}</p>
-      <a href="#" class="hero-mobile-book" data-book-session>Book now</a>
+      <div class="hero-mobile-book-ring">
+        <svg class="hero-mobile-book-ring-svg" viewBox="0 0 100 36" preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="heroBookRingGrad" gradientUnits="userSpaceOnUse" x1="0" y1="18" x2="100" y2="18">
+              <stop offset="0%" stop-color="#d4849a"/>
+              <stop offset="42%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#d4849a"/>
+            </linearGradient>
+          </defs>
+          <rect x="1.5" y="1.5" width="97" height="33" rx="16.5" ry="16.5" fill="none"
+            stroke="url(#heroBookRingGrad)" stroke-width="2.8" stroke-linecap="round"
+            stroke-dasharray="48 210" pathLength="258">
+            <animate attributeName="stroke-dashoffset" values="0;-258" dur="2.8s" repeatCount="indefinite"/>
+          </rect>
+        </svg>
+        <a href="#" class="hero-mobile-book" data-book-session>Book now</a>
+      </div>
     </div>
   </div>
   <div class="container hero-content">
@@ -51,6 +71,15 @@
     </div>
   </div>
 </section>
+
+<div class="hero-mobile-badges">
+  <div class="hero-mobile-badges-inner">
+    <span class="badge">Private sessions</span>
+    <span class="badge">Soft luxury care</span>
+    <span class="badge">Calm atmosphere</span>
+    <span class="badge">Wellness focused</span>
+  </div>
+</div>
 
 <section class="section">
   <div class="container grid-2" style="align-items:center">
